@@ -63,10 +63,10 @@ class PipelineKpiWidget extends StatelessWidget {
     ];
 
     return SizedBox(
-      height: 110,
+      height: 120,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         itemCount: kpis.length,
         separatorBuilder: (_, __) => const SizedBox(width: 12),
         itemBuilder: (context, i) => _KpiCard(data: kpis[i]),
@@ -99,8 +99,8 @@ class _KpiCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 136,
-      padding: const EdgeInsets.all(14),
+      width: 140,
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppTheme.surfaceLight,
         borderRadius: BorderRadius.circular(16),
@@ -114,19 +114,19 @@ class _KpiCard extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                width: 30,
-                height: 30,
+                width: 28,
+                height: 28,
                 decoration: BoxDecoration(
                   color: data.color.withAlpha(31),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(data.icon, size: 16, color: data.color),
+                child: Icon(data.icon, size: 14, color: data.color),
               ),
               Row(
                 children: [
@@ -134,14 +134,14 @@ class _KpiCard extends StatelessWidget {
                     data.trendUp
                         ? Icons.trending_up_rounded
                         : Icons.trending_down_rounded,
-                    size: 12,
+                    size: 11,
                     color: data.trendUp ? AppTheme.success : AppTheme.warning,
                   ),
                   const SizedBox(width: 2),
                   Text(
                     data.trend,
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 10,
+                      fontSize: 9,
                       fontWeight: FontWeight.w500,
                       color: data.trendUp ? AppTheme.success : AppTheme.warning,
                     ),
@@ -150,27 +150,28 @@ class _KpiCard extends StatelessWidget {
               ),
             ],
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                data.value,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.textPrimary,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-              ),
-              Text(
-                data.label,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 11,
-                  color: AppTheme.textSecondary,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ],
+          const SizedBox(height: 6),
+          Text(
+            data.value,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textPrimary,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            data.label,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 10,
+              color: AppTheme.textSecondary,
+              fontWeight: FontWeight.w400,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
         ],
       ),

@@ -2,6 +2,70 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../theme/app_theme.dart';
 
+// ─── Lead Owner Data ──────────────────────────────────────────────────────────
+
+class LeadOwner {
+  final String name;
+  final String initials;
+  final String role;
+  final String id;
+
+  const LeadOwner({
+    required this.name,
+    required this.initials,
+    required this.role,
+    required this.id,
+  });
+}
+
+// Unique IDs: ADM-XXXX for admin, EMP-XXXX for employee, CONT-XXXX for contractor
+const List<LeadOwner> kLeadOwners = [
+  LeadOwner(
+    name: 'Priya Sharma',
+    initials: 'PS',
+    role: 'Admin',
+    id: 'ADM-1042',
+  ),
+  LeadOwner(
+    name: 'Rahul Singh',
+    initials: 'RS',
+    role: 'Senior Rep',
+    id: 'EMP-2391',
+  ),
+  LeadOwner(
+    name: 'Ananya Patel',
+    initials: 'AP',
+    role: 'Manager',
+    id: 'EMP-1874',
+  ),
+  LeadOwner(
+    name: 'Kavya Menon',
+    initials: 'KM',
+    role: 'Sales Rep',
+    id: 'EMP-3012',
+  ),
+  LeadOwner(
+    name: 'Arjun Das',
+    initials: 'AD',
+    role: 'Sales Rep',
+    id: 'EMP-2756',
+  ),
+  LeadOwner(
+    name: 'Vikram Nair',
+    initials: 'VN',
+    role: 'Contractor',
+    id: 'CONT-8391',
+  ),
+  LeadOwner(
+    name: 'Meera Iyer',
+    initials: 'MI',
+    role: 'Contractor',
+    id: 'CONT-5204',
+  ),
+];
+
+// ─── Section Lead Details Widget ─────────────────────────────────────────────
+
 class SectionLeadDetailsWidget extends StatefulWidget {
   const SectionLeadDetailsWidget({super.key});
 
@@ -12,9 +76,18 @@ class SectionLeadDetailsWidget extends StatefulWidget {
 
 class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
     with SingleTickerProviderStateMixin {
+  // Pipeline stages renamed as requested
+  static const _statuses = [
+    'New',
+    'Contacted',
+    'Proposed',
+    'Qualified',
+    'Negotiations',
+    'Result',
+  ];
+
   String _selectedStatus = 'New';
   String _selectedPriority = 'Medium';
-  double _leadScore = 50;
   String _selectedTier = 'Standard';
   bool _isVip = false;
   String _selectedSource = '';
@@ -25,18 +98,12 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
   final _utmCtrl = TextEditingController();
   final _referralCtrl = TextEditingController();
   DateTime? _expectedCloseDate;
-  String _selectedOwner = 'Rahul Singh';
+  DateTime? _scheduledActionDate;
+  final _actionNotesCtrl = TextEditingController();
 
-  static const _statuses = [
-    'New',
-    'Contacted',
-    'Qualified',
-    'Proposal',
-    'Negotiation',
-    'Won',
-    'Lost',
-    'Junk',
-  ];
+  // Default to logged-in user (Priya Sharma - Admin)
+  LeadOwner _selectedOwner = kLeadOwners.first;
+
   static const _priorities = ['High', 'Medium', 'Low'];
   static const _tiers = ['Standard', 'Silver', 'Gold', 'Platinum'];
   static const _sources = [
@@ -68,13 +135,6 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
   ];
   final List<String> _selectedTags = [];
 
-  static const _owners = [
-    {'name': 'Rahul Singh', 'initials': 'RS', 'role': 'Senior Rep'},
-    {'name': 'Ananya Patel', 'initials': 'AP', 'role': 'Manager'},
-    {'name': 'Kavya Menon', 'initials': 'KM', 'role': 'Sales Rep'},
-    {'name': 'Arjun Das', 'initials': 'AD', 'role': 'Sales Rep'},
-  ];
-
   static const _quickAmounts = [
     {'label': '₹1L', 'value': 100000.0},
     {'label': '₹5L', 'value': 500000.0},
@@ -90,12 +150,19 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
     return '₹${v.toStringAsFixed(0)}';
   }
 
+  Color _ownerIdColor(String id) {
+    if (id.startsWith('ADM')) return AppTheme.primary;
+    if (id.startsWith('EMP')) return AppTheme.success;
+    return const Color(0xFFD97706);
+  }
+
   @override
   void dispose() {
     _dealValueCtrl.dispose();
     _campaignCtrl.dispose();
     _utmCtrl.dispose();
     _referralCtrl.dispose();
+    _actionNotesCtrl.dispose();
     super.dispose();
   }
 
@@ -110,25 +177,22 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
         // Priority
         _buildPrioritySection(),
         const SizedBox(height: 16),
-        // Lead score
-        _buildLeadScoreSection(),
+        // Tier
+        _buildTierDropdown(),
+        const SizedBox(height: 12),
+        // VIP toggle
+        _buildVipToggle(),
         const SizedBox(height: 16),
-        // Tier + VIP
-        Row(
-          children: [
-            Expanded(child: _buildTierDropdown()),
-            const SizedBox(width: 12),
-            _buildVipToggle(),
-          ],
-        ),
-        const SizedBox(height: 16),
-        // Deal value + close date
+        // Deal value
         _buildDealValueSection(),
+        const SizedBox(height: 16),
+        // Expected close date (stacked)
+        _buildCloseDatePicker(),
         const SizedBox(height: 16),
         // Source attribution
         _buildSourceSection(),
         const SizedBox(height: 16),
-        // Action schedule
+        // Action schedule (compulsory)
         _buildActionSection(),
         const SizedBox(height: 16),
         // Lead owner
@@ -152,66 +216,76 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
             color: AppTheme.textSecondary,
           ),
         ),
-        const SizedBox(height: 12),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: List.generate(_statuses.length, (i) {
-              final status = _statuses[i];
-              final isActive = _selectedStatus == status;
-              final color = AppTheme.leadStatusColor(status);
-              final isPast = _statuses.indexOf(_selectedStatus) > i;
+        const SizedBox(height: 14),
+        // Wrap in ClipRect to prevent glow from being cut off
+        ClipRect(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 6, bottom: 4),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              clipBehavior: Clip.none,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Row(
+                  children: List.generate(_statuses.length, (i) {
+                    final status = _statuses[i];
+                    final isActive = _selectedStatus == status;
+                    final color = AppTheme.leadStatusColor(status);
+                    final isPast = _statuses.indexOf(_selectedStatus) > i;
 
-              return Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => setState(() => _selectedStatus = status),
-                    child: Column(
+                    return Row(
                       children: [
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          width: isActive ? 14 : 10,
-                          height: isActive ? 14 : 10,
-                          decoration: BoxDecoration(
-                            color: isPast || isActive
-                                ? color
-                                : AppTheme.surface200,
-                            shape: BoxShape.circle,
-                            boxShadow: isActive
-                                ? [
-                                    BoxShadow(
-                                      color: color.withAlpha(128),
-                                      blurRadius: 8,
-                                      spreadRadius: 2,
-                                    ),
-                                  ]
-                                : null,
+                        GestureDetector(
+                          onTap: () => setState(() => _selectedStatus = status),
+                          child: Column(
+                            children: [
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                width: isActive ? 16 : 10,
+                                height: isActive ? 16 : 10,
+                                decoration: BoxDecoration(
+                                  color: isPast || isActive
+                                      ? color
+                                      : AppTheme.surface200,
+                                  shape: BoxShape.circle,
+                                  boxShadow: isActive
+                                      ? [
+                                          BoxShadow(
+                                            color: color.withAlpha(128),
+                                            blurRadius: 10,
+                                            spreadRadius: 3,
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                status,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 9,
+                                  fontWeight: isActive
+                                      ? FontWeight.w700
+                                      : FontWeight.w400,
+                                  color: isActive ? color : AppTheme.textMuted,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          status,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 9,
-                            fontWeight: isActive
-                                ? FontWeight.w700
-                                : FontWeight.w400,
-                            color: isActive ? color : AppTheme.textMuted,
+                        if (i < _statuses.length - 1)
+                          Container(
+                            width: 28,
+                            height: 2,
+                            margin: const EdgeInsets.only(bottom: 16),
+                            color: isPast ? color : AppTheme.surface200,
                           ),
-                        ),
                       ],
-                    ),
-                  ),
-                  if (i < _statuses.length - 1)
-                    Container(
-                      width: 24,
-                      height: 2,
-                      margin: const EdgeInsets.only(bottom: 14),
-                      color: isPast ? color : AppTheme.surface200,
-                    ),
-                ],
-              );
-            }),
+                    );
+                  }),
+                ),
+              ),
+            ),
           ),
         ),
       ],
@@ -267,92 +341,6 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
     );
   }
 
-  Widget _buildLeadScoreSection() {
-    final scoreColor = _leadScore >= 70
-        ? AppTheme.success
-        : _leadScore >= 40
-        ? AppTheme.warning
-        : AppTheme.error;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              'Lead Score',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.textSecondary,
-              ),
-            ),
-            const Spacer(),
-            Text(
-              _leadScore.round().toString(),
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: scoreColor,
-                fontFeatures: const [FontFeature.tabularFigures()],
-              ),
-            ),
-            Text(
-              '/100',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12,
-                color: AppTheme.textMuted,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        SliderTheme(
-          data: SliderTheme.of(context).copyWith(
-            activeTrackColor: scoreColor,
-            inactiveTrackColor: AppTheme.surface200,
-            thumbColor: scoreColor,
-            overlayColor: scoreColor.withAlpha(38),
-            trackHeight: 6,
-            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
-          ),
-          child: Slider(
-            value: _leadScore,
-            min: 0,
-            max: 100,
-            onChanged: (v) => setState(() => _leadScore = v),
-          ),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Cold',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 10,
-                color: AppTheme.error,
-              ),
-            ),
-            Text(
-              'Warm',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 10,
-                color: AppTheme.warning,
-              ),
-            ),
-            Text(
-              'Hot',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 10,
-                color: AppTheme.success,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
   Widget _buildTierDropdown() {
     return InputDecorator(
       decoration: const InputDecoration(
@@ -398,9 +386,9 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
         child: Row(
           children: [
             Text('⭐', style: TextStyle(fontSize: _isVip ? 18 : 16)),
-            const SizedBox(width: 6),
+            const SizedBox(width: 8),
             Text(
-              'VIP',
+              'Mark as VIP',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -408,6 +396,13 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
                     ? const Color(0xFFB45309)
                     : AppTheme.textSecondary,
               ),
+            ),
+            const Spacer(),
+            Switch(
+              value: _isVip,
+              onChanged: (v) => setState(() => _isVip = v),
+              activeColor: const Color(0xFFB45309),
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
           ],
         ),
@@ -428,65 +423,17 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
           ),
         ),
         const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                controller: _dealValueCtrl,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Amount (₹)',
-                  prefixText: '₹ ',
-                  prefixIcon: Icon(Icons.currency_rupee_rounded, size: 18),
-                ),
-                onChanged: (v) {
-                  setState(() => _dealValue = double.tryParse(v) ?? 0);
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-            GestureDetector(
-              onTap: () async {
-                final picked = await showDatePicker(
-                  context: context,
-                  initialDate: DateTime.now().add(const Duration(days: 30)),
-                  firstDate: DateTime.now(),
-                  lastDate: DateTime.now().add(const Duration(days: 365)),
-                );
-                if (picked != null) setState(() => _expectedCloseDate = picked);
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 14,
-                ),
-                decoration: BoxDecoration(
-                  color: AppTheme.surfaceVariantLight,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.surface200),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.calendar_today_outlined,
-                      size: 16,
-                      color: AppTheme.textSecondary,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      _expectedCloseDate != null
-                          ? '${_expectedCloseDate!.day}/${_expectedCloseDate!.month}'
-                          : 'Close Date',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        color: AppTheme.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+        TextFormField(
+          controller: _dealValueCtrl,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Amount (₹)',
+            prefixText: '₹ ',
+            prefixIcon: Icon(Icons.currency_rupee_rounded, size: 18),
+          ),
+          onChanged: (v) {
+            setState(() => _dealValue = double.tryParse(v) ?? 0);
+          },
         ),
         if (_dealValue > 0) ...[
           const SizedBox(height: 6),
@@ -536,6 +483,59 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
           }).toList(),
         ),
       ],
+    );
+  }
+
+  Widget _buildCloseDatePicker() {
+    return GestureDetector(
+      onTap: () async {
+        final picked = await showDatePicker(
+          context: context,
+          initialDate: DateTime.now().add(const Duration(days: 30)),
+          firstDate: DateTime.now(),
+          lastDate: DateTime.now().add(const Duration(days: 365)),
+        );
+        if (picked != null) setState(() => _expectedCloseDate = picked);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceVariantLight,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppTheme.surface200),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.calendar_today_outlined,
+              size: 18,
+              color: AppTheme.textSecondary,
+            ),
+            const SizedBox(width: 10),
+            Text(
+              _expectedCloseDate != null
+                  ? 'Close Date: ${_expectedCloseDate!.day}/${_expectedCloseDate!.month}/${_expectedCloseDate!.year}'
+                  : 'Expected Close Date',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                color: _expectedCloseDate != null
+                    ? AppTheme.textPrimary
+                    : AppTheme.textSecondary,
+              ),
+            ),
+            const Spacer(),
+            if (_expectedCloseDate != null)
+              GestureDetector(
+                onTap: () => setState(() => _expectedCloseDate = null),
+                child: const Icon(
+                  Icons.close_rounded,
+                  size: 16,
+                  color: AppTheme.textMuted,
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -590,22 +590,14 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
           }).toList(),
         ),
         const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                controller: _campaignCtrl,
-                decoration: const InputDecoration(labelText: 'Campaign'),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: TextFormField(
-                controller: _utmCtrl,
-                decoration: const InputDecoration(labelText: 'UTM Source'),
-              ),
-            ),
-          ],
+        TextFormField(
+          controller: _campaignCtrl,
+          decoration: const InputDecoration(labelText: 'Campaign'),
+        ),
+        const SizedBox(height: 12),
+        TextFormField(
+          controller: _utmCtrl,
+          decoration: const InputDecoration(labelText: 'UTM Source'),
         ),
         const SizedBox(height: 12),
         TextFormField(
@@ -623,13 +615,33 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Schedule Action',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.textSecondary,
-          ),
+        Row(
+          children: [
+            Text(
+              'Scheduled Action',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textSecondary,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppTheme.error.withAlpha(20),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                'Required',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.error,
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
         SingleChildScrollView(
@@ -670,6 +682,17 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
             }).toList(),
           ),
         ),
+        if (_selectedAction.isEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Text(
+              'Please select a scheduled action',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11,
+                color: AppTheme.error,
+              ),
+            ),
+          ),
         AnimatedSize(
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOutCubic,
@@ -694,41 +717,50 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
                         ),
                       ),
                       const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              readOnly: true,
-                              decoration: const InputDecoration(
-                                labelText: 'Date & Time',
-                                prefixIcon: Icon(
-                                  Icons.calendar_today_outlined,
-                                  size: 16,
-                                ),
-                              ),
-                              onTap: () async {
-                                await showDatePicker(
-                                  context: context,
-                                  initialDate: DateTime.now().add(
-                                    const Duration(days: 1),
-                                  ),
-                                  firstDate: DateTime.now(),
-                                  lastDate: DateTime.now().add(
-                                    const Duration(days: 365),
-                                  ),
-                                );
-                              },
-                            ),
+                      // Date & Time (stacked)
+                      TextFormField(
+                        readOnly: true,
+                        decoration: InputDecoration(
+                          labelText: 'Date & Time *',
+                          prefixIcon: const Icon(
+                            Icons.calendar_today_outlined,
+                            size: 16,
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TextFormField(
-                              decoration: const InputDecoration(
-                                labelText: 'Notes',
-                              ),
+                          hintText: _scheduledActionDate != null
+                              ? '${_scheduledActionDate!.day}/${_scheduledActionDate!.month}/${_scheduledActionDate!.year}'
+                              : null,
+                        ),
+                        controller: TextEditingController(
+                          text: _scheduledActionDate != null
+                              ? '${_scheduledActionDate!.day}/${_scheduledActionDate!.month}/${_scheduledActionDate!.year}'
+                              : '',
+                        ),
+                        validator: (v) =>
+                            (v == null || v.isEmpty) ? 'Date required' : null,
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now().add(
+                              const Duration(days: 1),
                             ),
-                          ),
-                        ],
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime.now().add(
+                              const Duration(days: 365),
+                            ),
+                          );
+                          if (picked != null)
+                            setState(() => _scheduledActionDate = picked);
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      // Notes (stacked)
+                      TextFormField(
+                        controller: _actionNotesCtrl,
+                        maxLines: 2,
+                        decoration: const InputDecoration(
+                          labelText: 'Notes',
+                          alignLabelWithHint: true,
+                        ),
                       ),
                     ],
                   ),
@@ -764,44 +796,66 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
             child: Row(
               children: [
                 CircleAvatar(
-                  radius: 18,
-                  backgroundColor: AppTheme.primaryContainer,
+                  radius: 20,
+                  backgroundColor: _ownerIdColor(
+                    _selectedOwner.id,
+                  ).withAlpha(30),
                   child: Text(
-                    _owners.firstWhere(
-                          (o) => o['name'] == _selectedOwner,
-                        )['initials']
-                        as String,
+                    _selectedOwner.initials,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
-                      color: AppTheme.primary,
+                      color: _ownerIdColor(_selectedOwner.id),
                     ),
                   ),
                 ),
                 const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _selectedOwner,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _selectedOwner.name,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                    Text(
-                      _owners.firstWhere(
-                            (o) => o['name'] == _selectedOwner,
-                          )['role']
-                          as String,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        color: AppTheme.textSecondary,
+                      Row(
+                        children: [
+                          Text(
+                            _selectedOwner.role,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _ownerIdColor(
+                                _selectedOwner.id,
+                              ).withAlpha(20),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              _selectedOwner.id,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: _ownerIdColor(_selectedOwner.id),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                const Spacer(),
                 const Icon(
                   Icons.swap_horiz_rounded,
                   color: AppTheme.textSecondary,
@@ -830,70 +884,68 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: [
-            ..._tags.map((tag) {
-              final isSelected = _selectedTags.contains(tag);
-              Color tagColor;
-              switch (tag) {
-                case 'VIP':
-                  tagColor = const Color(0xFFB45309);
-                  break;
-                case 'Urgent':
-                  tagColor = AppTheme.error;
-                  break;
-                case 'Follow-up':
-                  tagColor = AppTheme.warning;
-                  break;
-                default:
-                  tagColor = AppTheme.primary;
-              }
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    if (isSelected) {
-                      _selectedTags.remove(tag);
-                    } else {
-                      _selectedTags.add(tag);
-                    }
-                  });
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? tagColor.withAlpha(31)
-                        : AppTheme.surface100,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: isSelected ? tagColor : AppTheme.surface200,
-                      width: isSelected ? 1.5 : 1,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        tag,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: isSelected ? tagColor : AppTheme.textSecondary,
-                        ),
-                      ),
-                      if (isSelected) ...[
-                        const SizedBox(width: 4),
-                        Icon(Icons.close_rounded, size: 12, color: tagColor),
-                      ],
-                    ],
+          children: _tags.map((tag) {
+            final isSelected = _selectedTags.contains(tag);
+            Color tagColor;
+            switch (tag) {
+              case 'VIP':
+                tagColor = const Color(0xFFB45309);
+                break;
+              case 'Urgent':
+                tagColor = AppTheme.error;
+                break;
+              case 'Follow-up':
+                tagColor = AppTheme.warning;
+                break;
+              default:
+                tagColor = AppTheme.primary;
+            }
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  if (isSelected) {
+                    _selectedTags.remove(tag);
+                  } else {
+                    _selectedTags.add(tag);
+                  }
+                });
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? tagColor.withAlpha(31)
+                      : AppTheme.surface100,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isSelected ? tagColor : AppTheme.surface200,
+                    width: isSelected ? 1.5 : 1,
                   ),
                 ),
-              );
-            }),
-          ],
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      tag,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isSelected ? tagColor : AppTheme.textSecondary,
+                      ),
+                    ),
+                    if (isSelected) ...[
+                      const SizedBox(width: 4),
+                      Icon(Icons.close_rounded, size: 12, color: tagColor),
+                    ],
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
         ),
       ],
     );
@@ -902,88 +954,202 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
   void _showOwnerPicker() {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 36,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                color: AppTheme.surface200,
-                borderRadius: BorderRadius.circular(2),
-              ),
+      builder: (ctx) => _OwnerPickerSheet(
+        owners: kLeadOwners,
+        selectedOwner: _selectedOwner,
+        onSelect: (owner) {
+          setState(() => _selectedOwner = owner);
+          Navigator.pop(ctx);
+        },
+      ),
+    );
+  }
+}
+
+// ─── Owner Picker Sheet ───────────────────────────────────────────────────────
+
+class _OwnerPickerSheet extends StatefulWidget {
+  final List<LeadOwner> owners;
+  final LeadOwner selectedOwner;
+  final ValueChanged<LeadOwner> onSelect;
+
+  const _OwnerPickerSheet({
+    required this.owners,
+    required this.selectedOwner,
+    required this.onSelect,
+  });
+
+  @override
+  State<_OwnerPickerSheet> createState() => _OwnerPickerSheetState();
+}
+
+class _OwnerPickerSheetState extends State<_OwnerPickerSheet> {
+  String _query = '';
+  final _searchCtrl = TextEditingController();
+
+  List<LeadOwner> get _filtered {
+    if (_query.isEmpty) return widget.owners;
+    final q = _query.toLowerCase();
+    return widget.owners
+        .where(
+          (o) =>
+              o.name.toLowerCase().contains(q) ||
+              o.role.toLowerCase().contains(q) ||
+              o.id.toLowerCase().contains(q),
+        )
+        .toList();
+  }
+
+  Color _idColor(String id) {
+    if (id.startsWith('ADM')) return AppTheme.primary;
+    if (id.startsWith('EMP')) return AppTheme.success;
+    return const Color(0xFFD97706);
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 36,
+            height: 4,
+            margin: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: AppTheme.surface200,
+              borderRadius: BorderRadius.circular(2),
             ),
-            Text(
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
               'Assign Lead Owner',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 16,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
               ),
             ),
-            const SizedBox(height: 16),
-            ..._owners.map(
-              (owner) => InkWell(
-                onTap: () {
-                  setState(() => _selectedOwner = owner['name'] as String);
-                  Navigator.pop(ctx);
-                },
-                borderRadius: BorderRadius.circular(12),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 20,
-                        backgroundColor: AppTheme.primaryContainer,
-                        child: Text(
-                          owner['initials'] as String,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.primary,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            owner['name'] as String,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Text(
-                            owner['role'] as String,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12,
-                              color: AppTheme.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Spacer(),
-                      if (_selectedOwner == owner['name'])
-                        const Icon(
-                          Icons.check_rounded,
-                          color: AppTheme.primary,
-                        ),
-                    ],
-                  ),
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: TextField(
+              controller: _searchCtrl,
+              decoration: InputDecoration(
+                hintText: 'Search by name, role, or ID...',
+                prefixIcon: const Icon(Icons.search_rounded, size: 18),
+                contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppTheme.surface200),
                 ),
               ),
+              onChanged: (v) => setState(() => _query = v),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 8),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 320),
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: _filtered.length,
+              itemBuilder: (_, i) {
+                final owner = _filtered[i];
+                final isSelected = owner.id == widget.selectedOwner.id;
+                return InkWell(
+                  onTap: () => widget.onSelect(owner),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: _idColor(owner.id).withAlpha(30),
+                          child: Text(
+                            owner.initials,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: _idColor(owner.id),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                owner.name,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  Text(
+                                    owner.role,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      color: AppTheme.textSecondary,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 1,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _idColor(owner.id).withAlpha(20),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      owner.id,
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                        color: _idColor(owner.id),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (isSelected)
+                          const Icon(
+                            Icons.check_rounded,
+                            color: AppTheme.primary,
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
       ),
     );
   }

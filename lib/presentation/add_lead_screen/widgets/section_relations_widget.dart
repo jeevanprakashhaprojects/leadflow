@@ -10,16 +10,16 @@ class SectionRelationsWidget extends StatefulWidget {
 }
 
 class _SectionRelationsWidgetState extends State<SectionRelationsWidget> {
-  final List<Map<String, dynamic>> _relations = [
-    {
-      'name': 'Sneha Sharma',
-      'relation': 'Spouse',
-      'phone': '+91 98765 12345',
-      'age': 35,
-      'occupation': 'Teacher',
-      'company': 'DPS School',
-      'isExpanded': false,
-    },
+  final List<_RelationData> _relations = [
+    _RelationData(
+      name: 'Sneha Sharma',
+      relation: 'Spouse',
+      phone: '+91 98765 12345',
+      age: '35',
+      occupation: 'Teacher',
+      company: 'DPS School',
+      isExpanded: false,
+    ),
   ];
 
   static const _relationTypes = [
@@ -33,6 +33,11 @@ class _SectionRelationsWidgetState extends State<SectionRelationsWidget> {
     'Friend',
     'Colleague',
     'Partner',
+    'Guardian',
+    'Nominee',
+    'Business Partner',
+    'Referral',
+    'Other',
   ];
 
   static const _relationColors = {
@@ -46,6 +51,11 @@ class _SectionRelationsWidgetState extends State<SectionRelationsWidget> {
     'Friend': Color(0xFF8BC34A),
     'Colleague': Color(0xFF607D8B),
     'Partner': Color(0xFF795548),
+    'Guardian': Color(0xFF3F51B5),
+    'Nominee': Color(0xFF009688),
+    'Business Partner': Color(0xFF673AB7),
+    'Referral': Color(0xFFFF5722),
+    'Other': Color(0xFF9E9E9E),
   };
 
   Color _getRelationColor(String relation) {
@@ -60,6 +70,36 @@ class _SectionRelationsWidgetState extends State<SectionRelationsWidget> {
     return name.isNotEmpty ? name[0].toUpperCase() : 'R';
   }
 
+  void _addRelation() {
+    setState(() {
+      _relations.add(
+        _RelationData(
+          name: '',
+          relation: 'Friend',
+          phone: '',
+          age: '',
+          occupation: '',
+          company: '',
+          isExpanded: true,
+        ),
+      );
+    });
+  }
+
+  void _removeRelation(int index) {
+    setState(() => _relations.removeAt(index));
+  }
+
+  void _toggleExpand(int index) {
+    setState(
+      () => _relations[index].isExpanded = !_relations[index].isExpanded,
+    );
+  }
+
+  void _updateRelation(int index, _RelationData updated) {
+    setState(() => _relations[index] = updated);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -69,20 +109,17 @@ class _SectionRelationsWidgetState extends State<SectionRelationsWidget> {
           final index = entry.key;
           final rel = entry.value;
           return _RelationCard(
+            key: ValueKey('relation_$index'),
             relation: rel,
-            onToggleExpand: () {
-              setState(
-                () => _relations[index]['isExpanded'] = !rel['isExpanded'],
-              );
-            },
-            onRemove: () => setState(() => _relations.removeAt(index)),
+            relationTypes: _relationTypes,
             getRelationColor: _getRelationColor,
             getInitials: _getInitials,
-            relationTypes: _relationTypes,
+            onToggleExpand: () => _toggleExpand(index),
+            onRemove: () => _removeRelation(index),
+            onUpdate: (updated) => _updateRelation(index, updated),
           );
         }),
         const SizedBox(height: 12),
-        // Dashed add card
         GestureDetector(
           onTap: _addRelation,
           child: Container(
@@ -90,10 +127,7 @@ class _SectionRelationsWidgetState extends State<SectionRelationsWidget> {
             decoration: BoxDecoration(
               color: AppTheme.surface100,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AppTheme.primary.withAlpha(102),
-                style: BorderStyle.solid,
-              ),
+              border: Border.all(color: AppTheme.primary.withAlpha(102)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -127,50 +161,146 @@ class _SectionRelationsWidgetState extends State<SectionRelationsWidget> {
       ],
     );
   }
+}
 
-  void _addRelation() {
-    setState(() {
-      _relations.add({
-        'name': '',
-        'relation': 'Friend',
-        'phone': '',
-        'age': 0,
-        'occupation': '',
-        'company': '',
-        'isExpanded': true,
-      });
-    });
+// ─── Mutable Relation Data ────────────────────────────────────────────────────
+
+class _RelationData {
+  String name;
+  String relation;
+  String phone;
+  String age;
+  String occupation;
+  String company;
+  bool isExpanded;
+
+  _RelationData({
+    required this.name,
+    required this.relation,
+    required this.phone,
+    required this.age,
+    required this.occupation,
+    required this.company,
+    required this.isExpanded,
+  });
+
+  _RelationData copyWith({
+    String? name,
+    String? relation,
+    String? phone,
+    String? age,
+    String? occupation,
+    String? company,
+    bool? isExpanded,
+  }) {
+    return _RelationData(
+      name: name ?? this.name,
+      relation: relation ?? this.relation,
+      phone: phone ?? this.phone,
+      age: age ?? this.age,
+      occupation: occupation ?? this.occupation,
+      company: company ?? this.company,
+      isExpanded: isExpanded ?? this.isExpanded,
+    );
   }
 }
 
-class _RelationCard extends StatelessWidget {
-  final Map<String, dynamic> relation;
-  final VoidCallback onToggleExpand;
-  final VoidCallback onRemove;
+// ─── Relation Card ────────────────────────────────────────────────────────────
+
+class _RelationCard extends StatefulWidget {
+  final _RelationData relation;
+  final List<String> relationTypes;
   final Color Function(String) getRelationColor;
   final String Function(String) getInitials;
-  final List<String> relationTypes;
+  final VoidCallback onToggleExpand;
+  final VoidCallback onRemove;
+  final ValueChanged<_RelationData> onUpdate;
 
   const _RelationCard({
+    super.key,
     required this.relation,
-    required this.onToggleExpand,
-    required this.onRemove,
+    required this.relationTypes,
     required this.getRelationColor,
     required this.getInitials,
-    required this.relationTypes,
+    required this.onToggleExpand,
+    required this.onRemove,
+    required this.onUpdate,
   });
 
   @override
+  State<_RelationCard> createState() => _RelationCardState();
+}
+
+class _RelationCardState extends State<_RelationCard> {
+  late TextEditingController _nameCtrl;
+  late TextEditingController _phoneCtrl;
+  late TextEditingController _ageCtrl;
+  late TextEditingController _occupationCtrl;
+  late TextEditingController _companyCtrl;
+  late String _selectedRelation;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameCtrl = TextEditingController(text: widget.relation.name);
+    _phoneCtrl = TextEditingController(text: widget.relation.phone);
+    _ageCtrl = TextEditingController(text: widget.relation.age);
+    _occupationCtrl = TextEditingController(text: widget.relation.occupation);
+    _companyCtrl = TextEditingController(text: widget.relation.company);
+    _selectedRelation = widget.relation.relation;
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _phoneCtrl.dispose();
+    _ageCtrl.dispose();
+    _occupationCtrl.dispose();
+    _companyCtrl.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    widget.onUpdate(
+      widget.relation.copyWith(
+        name: _nameCtrl.text,
+        relation: _selectedRelation,
+        phone: _phoneCtrl.text,
+        age: _ageCtrl.text,
+        occupation: _occupationCtrl.text,
+        company: _companyCtrl.text,
+      ),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(
+              Icons.check_circle_rounded,
+              color: Colors.white,
+              size: 16,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Relation saved',
+              style: GoogleFonts.plusJakartaSans(fontSize: 13),
+            ),
+          ],
+        ),
+        backgroundColor: AppTheme.success,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final name = relation['name'] as String;
-    final rel = relation['relation'] as String;
-    final phone = relation['phone'] as String;
-    final age = relation['age'] as int;
-    final occupation = relation['occupation'] as String;
-    final company = relation['company'] as String;
-    final isExpanded = relation['isExpanded'] as bool;
-    final color = getRelationColor(rel);
-    final initials = name.isNotEmpty ? getInitials(name) : '?';
+    final name = widget.relation.name;
+    final rel = _selectedRelation;
+    final color = widget.getRelationColor(rel);
+    final initials = name.isNotEmpty ? widget.getInitials(name) : '?';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -190,7 +320,7 @@ class _RelationCard extends StatelessWidget {
         children: [
           // Summary row
           InkWell(
-            onTap: onToggleExpand,
+            onTap: widget.onToggleExpand,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
             child: Padding(
               padding: const EdgeInsets.all(14),
@@ -215,11 +345,14 @@ class _RelationCard extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            Text(
-                              name.isNotEmpty ? name : 'New Relation',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
+                            Expanded(
+                              child: Text(
+                                name.isNotEmpty ? name : 'New Relation',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -243,12 +376,16 @@ class _RelationCard extends StatelessWidget {
                             ),
                           ],
                         ),
-                        if (phone.isNotEmpty || occupation.isNotEmpty)
+                        if (widget.relation.phone.isNotEmpty ||
+                            widget.relation.occupation.isNotEmpty)
                           Text(
                             [
-                              if (phone.isNotEmpty) phone,
-                              if (age > 0) '$age yrs',
-                              if (occupation.isNotEmpty) occupation,
+                              if (widget.relation.phone.isNotEmpty)
+                                widget.relation.phone,
+                              if (widget.relation.age.isNotEmpty)
+                                '${widget.relation.age} yrs',
+                              if (widget.relation.occupation.isNotEmpty)
+                                widget.relation.occupation,
                             ].join(' · '),
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
@@ -259,7 +396,7 @@ class _RelationCard extends StatelessWidget {
                     ),
                   ),
                   AnimatedRotation(
-                    turns: isExpanded ? 0.5 : 0,
+                    turns: widget.relation.isExpanded ? 0.5 : 0,
                     duration: const Duration(milliseconds: 300),
                     child: const Icon(
                       Icons.keyboard_arrow_down_rounded,
@@ -274,7 +411,7 @@ class _RelationCard extends StatelessWidget {
           AnimatedSize(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOutCubic,
-            child: isExpanded
+            child: widget.relation.isExpanded
                 ? Padding(
                     padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
                     child: Column(
@@ -282,112 +419,97 @@ class _RelationCard extends StatelessWidget {
                       children: [
                         const Divider(height: 1),
                         const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: TextFormField(
-                                initialValue: name,
-                                textCapitalization: TextCapitalization.words,
-                                decoration: const InputDecoration(
-                                  labelText: 'Full Name',
-                                ),
-                              ),
+                        // Full Name (stacked)
+                        TextFormField(
+                          controller: _nameCtrl,
+                          textCapitalization: TextCapitalization.words,
+                          decoration: const InputDecoration(
+                            labelText: 'Full Name',
+                          ),
+                          onChanged: (_) => setState(() {}),
+                        ),
+                        const SizedBox(height: 10),
+                        // Relation dropdown (stacked, fully functional)
+                        InputDecorator(
+                          decoration: const InputDecoration(
+                            labelText: 'Relation Type',
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
                             ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: InputDecorator(
-                                decoration: const InputDecoration(
-                                  labelText: 'Relation',
-                                  contentPadding: EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 10,
-                                  ),
-                                ),
-                                child: DropdownButtonHideUnderline(
-                                  child: DropdownButton<String>(
-                                    value: rel,
-                                    isDense: true,
-                                    isExpanded: true,
-                                    items: relationTypes
-                                        .map(
-                                          (r) => DropdownMenuItem(
-                                            value: r,
-                                            child: Text(
-                                              r,
-                                              style:
-                                                  GoogleFonts.plusJakartaSans(
-                                                    fontSize: 12,
-                                                  ),
-                                            ),
-                                          ),
-                                        )
-                                        .toList(),
-                                    onChanged: (_) {},
-                                    icon: const Icon(
-                                      Icons.expand_more_rounded,
-                                      size: 14,
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: _selectedRelation,
+                              isDense: true,
+                              isExpanded: true,
+                              items: widget.relationTypes
+                                  .map(
+                                    (r) => DropdownMenuItem(
+                                      value: r,
+                                      child: Text(
+                                        r,
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 13,
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ),
+                                  )
+                                  .toList(),
+                              onChanged: (v) {
+                                if (v != null) {
+                                  setState(() => _selectedRelation = v);
+                                }
+                              },
+                              icon: const Icon(
+                                Icons.expand_more_rounded,
+                                size: 16,
                               ),
                             ),
-                          ],
+                          ),
                         ),
                         const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                initialValue: phone,
-                                keyboardType: TextInputType.phone,
-                                decoration: const InputDecoration(
-                                  labelText: 'Phone',
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: TextFormField(
-                                initialValue: age > 0 ? '$age' : '',
-                                keyboardType: TextInputType.number,
-                                decoration: const InputDecoration(
-                                  labelText: 'Age',
-                                ),
-                              ),
-                            ),
-                          ],
+                        // Phone (stacked)
+                        TextFormField(
+                          controller: _phoneCtrl,
+                          keyboardType: TextInputType.phone,
+                          decoration: const InputDecoration(
+                            labelText: 'Phone',
+                            prefixIcon: Icon(Icons.phone_outlined, size: 16),
+                          ),
                         ),
                         const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                initialValue: occupation,
-                                textCapitalization: TextCapitalization.words,
-                                decoration: const InputDecoration(
-                                  labelText: 'Occupation',
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: TextFormField(
-                                initialValue: company,
-                                textCapitalization: TextCapitalization.words,
-                                decoration: const InputDecoration(
-                                  labelText: 'Company',
-                                ),
-                              ),
-                            ),
-                          ],
+                        // Age (stacked)
+                        TextFormField(
+                          controller: _ageCtrl,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(labelText: 'Age'),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 10),
+                        // Occupation (stacked)
+                        TextFormField(
+                          controller: _occupationCtrl,
+                          textCapitalization: TextCapitalization.words,
+                          decoration: const InputDecoration(
+                            labelText: 'Occupation',
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        // Company (stacked)
+                        TextFormField(
+                          controller: _companyCtrl,
+                          textCapitalization: TextCapitalization.words,
+                          decoration: const InputDecoration(
+                            labelText: 'Company',
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        // Action buttons
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             TextButton.icon(
-                              onPressed: onRemove,
+                              onPressed: widget.onRemove,
                               icon: const Icon(
                                 Icons.delete_outline_rounded,
                                 size: 16,
@@ -398,6 +520,28 @@ class _RelationCard extends StatelessWidget {
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 12,
                                   color: AppTheme.error,
+                                ),
+                              ),
+                            ),
+                            ElevatedButton.icon(
+                              onPressed: _save,
+                              icon: const Icon(Icons.save_rounded, size: 16),
+                              label: Text(
+                                'Save',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.primary,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 10,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
                               ),
                             ),

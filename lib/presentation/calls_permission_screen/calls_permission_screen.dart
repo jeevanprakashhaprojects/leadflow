@@ -14,6 +14,7 @@ class CallsPermissionScreen extends StatefulWidget {
 class _CallsPermissionScreenState extends State<CallsPermissionScreen>
     with TickerProviderStateMixin {
   bool _callLogGranted = false;
+  bool _phoneStateGranted = false;
   bool _whyExpanded = false;
   bool _skipWarningShown = false;
 
@@ -68,14 +69,45 @@ class _CallsPermissionScreenState extends State<CallsPermissionScreen>
     super.dispose();
   }
 
+  /// Simulates requesting both READ_CALL_LOG and READ_PHONE_STATE permissions.
+  /// In production, replace with permission_handler package calls.
   void _requestPermission() async {
-    // Simulate permission request
+    // Simulate permission dialog
     await Future.delayed(const Duration(milliseconds: 600));
-    setState(() => _callLogGranted = true);
-    await Future.delayed(const Duration(milliseconds: 800));
+    // Show a simulated permission dialog for phone state
     if (mounted) {
-      context.go(AppRoutes.simSelectionScreen);
+      final result = await _showPhonePermissionDialog();
+      if (result == 'full') {
+        // Full permission granted — proceed to SIM selection
+        setState(() {
+          _callLogGranted = true;
+          _phoneStateGranted = true;
+        });
+        await Future.delayed(const Duration(milliseconds: 800));
+        if (mounted) {
+          context.go(AppRoutes.simSelectionScreen);
+        }
+      } else if (result == 'limited') {
+        // Limited permission — skip SIM selection, go directly to dashboard
+        setState(() {
+          _callLogGranted = true;
+          _phoneStateGranted = false;
+        });
+        await Future.delayed(const Duration(milliseconds: 600));
+        if (mounted) {
+          context.go(AppRoutes.leadsListScreen);
+        }
+      }
+      // If denied, stay on screen
     }
+  }
+
+  Future<String?> _showPhonePermissionDialog() async {
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _PhonePermissionDialog(),
+    );
   }
 
   void _showSkipWarning() {
@@ -85,7 +117,8 @@ class _CallsPermissionScreenState extends State<CallsPermissionScreen>
       builder: (_) => _SkipWarningDialog(
         onContinueWithLimited: () {
           Navigator.pop(context);
-          context.go(AppRoutes.simSelectionScreen);
+          // Skip SIM selection when limited — go directly to dashboard
+          context.go(AppRoutes.leadsListScreen);
         },
         onGrantPermission: () {
           Navigator.pop(context);
@@ -94,6 +127,8 @@ class _CallsPermissionScreenState extends State<CallsPermissionScreen>
       ),
     );
   }
+
+  bool get _allGranted => _callLogGranted && _phoneStateGranted;
 
   @override
   Widget build(BuildContext context) {
@@ -153,9 +188,9 @@ class _CallsPermissionScreenState extends State<CallsPermissionScreen>
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'Access Call Logs',
+                      'Access Call Logs & Phone',
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 26,
+                        fontSize: 24,
                         fontWeight: FontWeight.w800,
                         color: AppTheme.textPrimary,
                         letterSpacing: -0.5,
@@ -164,7 +199,7 @@ class _CallsPermissionScreenState extends State<CallsPermissionScreen>
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'AnbuCRM needs access to your call logs to automatically track and log your sales calls.',
+                      'AnbuCRM needs access to your call logs and phone state to automatically track and log your sales calls.',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 14,
                         color: AppTheme.textSecondary,
@@ -185,22 +220,22 @@ class _CallsPermissionScreenState extends State<CallsPermissionScreen>
                     ),
                     const SizedBox(height: 12),
                     _BenefitCard(
+                      icon: Icons.sim_card_outlined,
+                      iconColor: const Color(0xFF0891B2),
+                      iconBg: const Color(0xFFE0F2FE),
+                      title: 'SIM & Phone State',
+                      description:
+                          'We read your phone state to identify which SIM is used for sales calls, enabling accurate call attribution.',
+                      delay: 100,
+                    ),
+                    const SizedBox(height: 12),
+                    _BenefitCard(
                       icon: Icons.shield_outlined,
                       iconColor: AppTheme.success,
                       iconBg: AppTheme.successContainer,
                       title: 'Secure & Private',
                       description:
                           'Your call data stays on your device and is only synced to your AnbuCRM account. It is never shared with third parties.',
-                      delay: 100,
-                    ),
-                    const SizedBox(height: 12),
-                    _BenefitCard(
-                      icon: Icons.insights_rounded,
-                      iconColor: const Color(0xFFD97706),
-                      iconBg: const Color(0xFFFEF3C7),
-                      title: 'Smart Lead Insights',
-                      description:
-                          'Get instant context about a lead before you call — see past interactions, notes, and follow-up history.',
                       delay: 200,
                     ),
                     const SizedBox(height: 20),
@@ -211,30 +246,37 @@ class _CallsPermissionScreenState extends State<CallsPermissionScreen>
                           setState(() => _whyExpanded = !_whyExpanded),
                     ),
                     const SizedBox(height: 24),
-                    // Permission status
+                    // Permission status rows
                     _PermissionStatusRow(
                       label: 'Read Call Logs',
+                      icon: Icons.phone_outlined,
                       granted: _callLogGranted,
+                    ),
+                    const SizedBox(height: 8),
+                    _PermissionStatusRow(
+                      label: 'Phone State & SIM Info',
+                      icon: Icons.sim_card_outlined,
+                      granted: _phoneStateGranted,
                     ),
                     const SizedBox(height: 24),
                     // Allow Access button with pulse
                     AnimatedBuilder(
                       animation: _pulseAnim,
                       builder: (_, child) => Transform.scale(
-                        scale: _callLogGranted ? 1.0 : _pulseAnim.value,
+                        scale: _allGranted ? 1.0 : _pulseAnim.value,
                         child: child,
                       ),
                       child: GestureDetector(
-                        onTap: _callLogGranted ? null : _requestPermission,
+                        onTap: _allGranted ? null : _requestPermission,
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 300),
                           height: 56,
                           decoration: BoxDecoration(
-                            gradient: _callLogGranted
-                                ? LinearGradient(
+                            gradient: _allGranted
+                                ? const LinearGradient(
                                     colors: [
                                       AppTheme.success,
-                                      const Color(0xFF059669),
+                                      Color(0xFF059669),
                                     ],
                                   )
                                 : const LinearGradient(
@@ -249,7 +291,7 @@ class _CallsPermissionScreenState extends State<CallsPermissionScreen>
                             boxShadow: [
                               BoxShadow(
                                 color:
-                                    (_callLogGranted
+                                    (_allGranted
                                             ? AppTheme.success
                                             : AppTheme.primary)
                                         .withAlpha(70),
@@ -262,7 +304,7 @@ class _CallsPermissionScreenState extends State<CallsPermissionScreen>
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
-                                _callLogGranted
+                                _allGranted
                                     ? Icons.check_circle_rounded
                                     : Icons.lock_open_rounded,
                                 color: Colors.white,
@@ -270,8 +312,8 @@ class _CallsPermissionScreenState extends State<CallsPermissionScreen>
                               ),
                               const SizedBox(width: 10),
                               Text(
-                                _callLogGranted
-                                    ? 'Permission Granted!'
+                                _allGranted
+                                    ? 'Permissions Granted!'
                                     : 'Allow Access',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 16,
@@ -305,6 +347,119 @@ class _CallsPermissionScreenState extends State<CallsPermissionScreen>
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Phone Permission Dialog ──────────────────────────────────────────────────
+
+class _PhonePermissionDialog extends StatelessWidget {
+  const _PhonePermissionDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: AppTheme.primaryContainer,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.sim_card_outlined,
+                color: AppTheme.primary,
+                size: 28,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Phone & SIM Permission',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.textPrimary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'AnbuCRM needs READ_PHONE_STATE permission to identify your SIM card for call tracking.',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                color: AppTheme.textSecondary,
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context, 'full'),
+                child: Container(
+                  height: 48,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppTheme.primary, Color(0xFF7C3AED)],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'Allow Full Access',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => Navigator.pop(context, 'limited'),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: AppTheme.surface200),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: Text(
+                  'Allow Limited (Skip SIM)',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: () => Navigator.pop(context, 'denied'),
+              child: Text(
+                'Deny',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  color: AppTheme.error,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -563,7 +718,7 @@ class _WhyWeNeedThis extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Why we need this permission',
+                      'Why we need these permissions',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -596,7 +751,13 @@ class _WhyWeNeedThis extends StatelessWidget {
                   _WhyItem(
                     icon: Icons.phone_callback_rounded,
                     text:
-                        'We read call logs to automatically identify which calls are related to your CRM leads.',
+                        'READ_CALL_LOG: We read call logs to automatically identify which calls are related to your CRM leads.',
+                  ),
+                  const SizedBox(height: 8),
+                  _WhyItem(
+                    icon: Icons.sim_card_outlined,
+                    text:
+                        'READ_PHONE_STATE: We read phone state to detect your active SIM and attribute calls to the correct number.',
                   ),
                   const SizedBox(height: 8),
                   _WhyItem(
@@ -614,7 +775,7 @@ class _WhyWeNeedThis extends StatelessWidget {
                   _WhyItem(
                     icon: Icons.settings_outlined,
                     text:
-                        'You can revoke this permission at any time from your device settings.',
+                        'You can revoke these permissions at any time from your device settings.',
                   ),
                 ],
               ),
@@ -661,9 +822,14 @@ class _WhyItem extends StatelessWidget {
 
 class _PermissionStatusRow extends StatelessWidget {
   final String label;
+  final IconData icon;
   final bool granted;
 
-  const _PermissionStatusRow({required this.label, required this.granted});
+  const _PermissionStatusRow({
+    required this.label,
+    required this.icon,
+    required this.granted,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -679,7 +845,7 @@ class _PermissionStatusRow extends StatelessWidget {
       child: Row(
         children: [
           Icon(
-            Icons.phone_outlined,
+            icon,
             size: 18,
             color: granted ? AppTheme.success : AppTheme.textSecondary,
           ),
@@ -752,8 +918,8 @@ class _SkipWarningDialog extends StatelessWidget {
             Container(
               width: 56,
               height: 56,
-              decoration: BoxDecoration(
-                color: const Color(0xFFFEF3C7),
+              decoration: const BoxDecoration(
+                color: Color(0xFFFEF3C7),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -774,7 +940,7 @@ class _SkipWarningDialog extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              'Without call log access, the following features will be disabled:',
+              'Without full permissions, the following features will be disabled:',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 13,
                 color: AppTheme.textSecondary,
@@ -787,6 +953,7 @@ class _SkipWarningDialog extends StatelessWidget {
               'Auto call logging',
               'Call duration tracking',
               'Missed call alerts',
+              'SIM-based call attribution',
               'Call-based lead insights',
             ].map(
               (f) => Padding(
