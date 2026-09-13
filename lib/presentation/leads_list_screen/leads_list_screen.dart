@@ -10,6 +10,170 @@ import './widgets/lead_card_widget.dart';
 import './widgets/lead_filter_bar_widget.dart';
 import './widgets/pipeline_kpi_widget.dart';
 
+// Global leads list so new leads added from AddLeadScreen appear immediately
+final List<Map<String, dynamic>> globalLeadMaps = [
+  {
+    'id': '1',
+    'name': 'Priya Sharma',
+    'company': 'Infosys Ltd.',
+    'status': 'Qualified',
+    'priority': 'High',
+    'score': 82,
+    'dealValue': 2500000.0,
+    'ownerInitials': 'RS',
+    'ownerName': 'Rahul Singh',
+    'lastContact': '2h ago',
+    'phone': '+91 98765 43210',
+    'email': 'priya.sharma@infosys.com',
+    'industry': 'Technology',
+    'tags': ['VIP', 'Follow-up'],
+  },
+  {
+    'id': '2',
+    'name': 'Mohammed Al-Rashid',
+    'company': 'Tata Consultancy',
+    'status': 'Proposal',
+    'priority': 'High',
+    'score': 91,
+    'dealValue': 7500000.0,
+    'ownerInitials': 'AP',
+    'ownerName': 'Ananya Patel',
+    'lastContact': '1d ago',
+    'phone': '+91 87654 32109',
+    'email': 'm.alrashid@tcs.com',
+    'industry': 'IT Services',
+    'tags': ['VIP', 'Urgent'],
+  },
+  {
+    'id': '3',
+    'name': 'Sunita Reddy',
+    'company': 'Wipro Technologies',
+    'status': 'Contacted',
+    'priority': 'Medium',
+    'score': 55,
+    'dealValue': 1200000.0,
+    'ownerInitials': 'KM',
+    'ownerName': 'Kavya Menon',
+    'lastContact': '3d ago',
+    'phone': '+91 76543 21098',
+    'email': 'sunita.r@wipro.com',
+    'industry': 'Technology',
+    'tags': ['Follow-up'],
+  },
+  {
+    'id': '4',
+    'name': 'Arjun Mehta',
+    'company': 'HCL Technologies',
+    'status': 'New',
+    'priority': 'Low',
+    'score': 32,
+    'dealValue': 500000.0,
+    'ownerInitials': 'RS',
+    'ownerName': 'Rahul Singh',
+    'lastContact': '5d ago',
+    'phone': '+91 65432 10987',
+    'email': 'arjun.m@hcl.com',
+    'industry': 'Technology',
+    'tags': [],
+  },
+  {
+    'id': '5',
+    'name': 'Fatima Nair',
+    'company': 'Reliance Industries',
+    'status': 'Negotiation',
+    'priority': 'High',
+    'score': 78,
+    'dealValue': 15000000.0,
+    'ownerInitials': 'AP',
+    'ownerName': 'Ananya Patel',
+    'lastContact': '6h ago',
+    'phone': '+91 54321 09876',
+    'email': 'f.nair@ril.com',
+    'industry': 'Conglomerate',
+    'tags': ['VIP', 'Urgent'],
+  },
+  {
+    'id': '6',
+    'name': 'Vikram Joshi',
+    'company': 'HDFC Bank',
+    'status': 'Won',
+    'priority': 'Medium',
+    'score': 95,
+    'dealValue': 3200000.0,
+    'ownerInitials': 'KM',
+    'ownerName': 'Kavya Menon',
+    'lastContact': '2d ago',
+    'phone': '+91 43210 98765',
+    'email': 'vikram.j@hdfc.com',
+    'industry': 'Banking',
+    'tags': ['VIP'],
+  },
+  {
+    'id': '7',
+    'name': 'Lakshmi Iyer',
+    'company': 'Bajaj Finance',
+    'status': 'Lost',
+    'priority': 'Low',
+    'score': 18,
+    'dealValue': 800000.0,
+    'ownerInitials': 'RS',
+    'ownerName': 'Rahul Singh',
+    'lastContact': '7d ago',
+    'phone': '+91 32109 87654',
+    'email': 'lakshmi.i@bajaj.com',
+    'industry': 'Finance',
+    'tags': [],
+  },
+  {
+    'id': '8',
+    'name': 'Rohan Kapoor',
+    'company': 'Mahindra Group',
+    'status': 'Qualified',
+    'priority': 'Medium',
+    'score': 67,
+    'dealValue': 4500000.0,
+    'ownerInitials': 'AP',
+    'ownerName': 'Ananya Patel',
+    'lastContact': '4h ago',
+    'phone': '+91 21098 76543',
+    'email': 'rohan.k@mahindra.com',
+    'industry': 'Automotive',
+    'tags': ['Follow-up'],
+  },
+  {
+    'id': '9',
+    'name': 'Deepika Verma',
+    'company': 'Zomato Ltd.',
+    'status': 'Contacted',
+    'priority': 'Medium',
+    'score': 44,
+    'dealValue': 650000.0,
+    'ownerInitials': 'KM',
+    'ownerName': 'Kavya Menon',
+    'lastContact': '2d ago',
+    'phone': '+91 10987 65432',
+    'email': 'd.verma@zomato.com',
+    'industry': 'Food Tech',
+    'tags': [],
+  },
+  {
+    'id': '10',
+    'name': 'Sameer Khan',
+    'company': 'Paytm',
+    'status': 'New',
+    'priority': 'Low',
+    'score': 22,
+    'dealValue': 300000.0,
+    'ownerInitials': 'RS',
+    'ownerName': 'Rahul Singh',
+    'lastContact': '1w ago',
+    'phone': '+91 09876 54321',
+    'email': 's.khan@paytm.com',
+    'industry': 'Fintech',
+    'tags': [],
+  },
+];
+
 // TODO: Replace with [Riverpod/Bloc] for production
 class LeadsListScreen extends StatefulWidget {
   const LeadsListScreen({super.key});
@@ -18,177 +182,25 @@ class LeadsListScreen extends StatefulWidget {
   State<LeadsListScreen> createState() => _LeadsListScreenState();
 }
 
+enum _SortOption {
+  nameAZ,
+  nameZA,
+  dealValueHigh,
+  dealValueLow,
+  dateNewest,
+  dateOldest,
+  priorityHigh,
+}
+
 class _LeadsListScreenState extends State<LeadsListScreen> {
   bool _isLoading = true;
   String _searchQuery = '';
   String _selectedFilter = 'All';
   bool _isSearchActive = false;
+  _SortOption _sortOption = _SortOption.dateNewest;
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
   List<LeadModel> _leads = [];
-
-  static const List<Map<String, dynamic>> _leadMaps = [
-    {
-      'id': '1',
-      'name': 'Priya Sharma',
-      'company': 'Infosys Ltd.',
-      'status': 'Qualified',
-      'priority': 'High',
-      'score': 82,
-      'dealValue': 2500000.0,
-      'ownerInitials': 'RS',
-      'ownerName': 'Rahul Singh',
-      'lastContact': '2h ago',
-      'phone': '+91 98765 43210',
-      'email': 'priya.sharma@infosys.com',
-      'industry': 'Technology',
-      'tags': ['VIP', 'Follow-up'],
-    },
-    {
-      'id': '2',
-      'name': 'Mohammed Al-Rashid',
-      'company': 'Tata Consultancy',
-      'status': 'Proposal',
-      'priority': 'High',
-      'score': 91,
-      'dealValue': 7500000.0,
-      'ownerInitials': 'AP',
-      'ownerName': 'Ananya Patel',
-      'lastContact': '1d ago',
-      'phone': '+91 87654 32109',
-      'email': 'm.alrashid@tcs.com',
-      'industry': 'IT Services',
-      'tags': ['VIP', 'Urgent'],
-    },
-    {
-      'id': '3',
-      'name': 'Sunita Reddy',
-      'company': 'Wipro Technologies',
-      'status': 'Contacted',
-      'priority': 'Medium',
-      'score': 55,
-      'dealValue': 1200000.0,
-      'ownerInitials': 'KM',
-      'ownerName': 'Kavya Menon',
-      'lastContact': '3d ago',
-      'phone': '+91 76543 21098',
-      'email': 'sunita.r@wipro.com',
-      'industry': 'Technology',
-      'tags': ['Follow-up'],
-    },
-    {
-      'id': '4',
-      'name': 'Arjun Mehta',
-      'company': 'HCL Technologies',
-      'status': 'New',
-      'priority': 'Low',
-      'score': 32,
-      'dealValue': 500000.0,
-      'ownerInitials': 'RS',
-      'ownerName': 'Rahul Singh',
-      'lastContact': '5d ago',
-      'phone': '+91 65432 10987',
-      'email': 'arjun.m@hcl.com',
-      'industry': 'Technology',
-      'tags': [],
-    },
-    {
-      'id': '5',
-      'name': 'Fatima Nair',
-      'company': 'Reliance Industries',
-      'status': 'Negotiation',
-      'priority': 'High',
-      'score': 78,
-      'dealValue': 15000000.0,
-      'ownerInitials': 'AP',
-      'ownerName': 'Ananya Patel',
-      'lastContact': '6h ago',
-      'phone': '+91 54321 09876',
-      'email': 'f.nair@ril.com',
-      'industry': 'Conglomerate',
-      'tags': ['VIP', 'Urgent'],
-    },
-    {
-      'id': '6',
-      'name': 'Vikram Joshi',
-      'company': 'HDFC Bank',
-      'status': 'Won',
-      'priority': 'Medium',
-      'score': 95,
-      'dealValue': 3200000.0,
-      'ownerInitials': 'KM',
-      'ownerName': 'Kavya Menon',
-      'lastContact': '2d ago',
-      'phone': '+91 43210 98765',
-      'email': 'vikram.j@hdfc.com',
-      'industry': 'Banking',
-      'tags': ['VIP'],
-    },
-    {
-      'id': '7',
-      'name': 'Lakshmi Iyer',
-      'company': 'Bajaj Finance',
-      'status': 'Lost',
-      'priority': 'Low',
-      'score': 18,
-      'dealValue': 800000.0,
-      'ownerInitials': 'RS',
-      'ownerName': 'Rahul Singh',
-      'lastContact': '7d ago',
-      'phone': '+91 32109 87654',
-      'email': 'lakshmi.i@bajaj.com',
-      'industry': 'Finance',
-      'tags': [],
-    },
-    {
-      'id': '8',
-      'name': 'Rohan Kapoor',
-      'company': 'Mahindra Group',
-      'status': 'Qualified',
-      'priority': 'Medium',
-      'score': 67,
-      'dealValue': 4500000.0,
-      'ownerInitials': 'AP',
-      'ownerName': 'Ananya Patel',
-      'lastContact': '4h ago',
-      'phone': '+91 21098 76543',
-      'email': 'rohan.k@mahindra.com',
-      'industry': 'Automotive',
-      'tags': ['Follow-up'],
-    },
-    {
-      'id': '9',
-      'name': 'Deepika Verma',
-      'company': 'Zomato Ltd.',
-      'status': 'Contacted',
-      'priority': 'Medium',
-      'score': 44,
-      'dealValue': 650000.0,
-      'ownerInitials': 'KM',
-      'ownerName': 'Kavya Menon',
-      'lastContact': '2d ago',
-      'phone': '+91 10987 65432',
-      'email': 'd.verma@zomato.com',
-      'industry': 'Food Tech',
-      'tags': [],
-    },
-    {
-      'id': '10',
-      'name': 'Sameer Khan',
-      'company': 'Paytm',
-      'status': 'New',
-      'priority': 'Low',
-      'score': 22,
-      'dealValue': 300000.0,
-      'ownerInitials': 'RS',
-      'ownerName': 'Rahul Singh',
-      'lastContact': '1w ago',
-      'phone': '+91 09876 54321',
-      'email': 's.khan@paytm.com',
-      'industry': 'Fintech',
-      'tags': [],
-    },
-  ];
 
   @override
   void initState() {
@@ -197,11 +209,10 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
   }
 
   Future<void> _loadLeads() async {
-    // TODO: Replace with [Riverpod/Bloc] data layer
     await Future.delayed(const Duration(milliseconds: 800));
     if (mounted) {
       setState(() {
-        _leads = _leadMaps.map(LeadModel.fromMap).toList();
+        _leads = globalLeadMaps.map(LeadModel.fromMap).toList();
         _isLoading = false;
       });
     }
@@ -209,11 +220,24 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
 
   Future<void> _refresh() async {
     setState(() => _isLoading = true);
-    await _loadLeads();
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (mounted) {
+      setState(() {
+        _leads = globalLeadMaps.map(LeadModel.fromMap).toList();
+        _isLoading = false;
+      });
+    }
+  }
+
+  void removeLead(String id) {
+    setState(() {
+      _leads.removeWhere((l) => l.id == id);
+      globalLeadMaps.removeWhere((m) => m['id'] == id);
+    });
   }
 
   List<LeadModel> get _filteredLeads {
-    return _leads.where((lead) {
+    List<LeadModel> result = _leads.where((lead) {
       final matchesFilter =
           _selectedFilter == 'All' || lead.status == _selectedFilter;
       final matchesSearch =
@@ -222,6 +246,140 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
           lead.company.toLowerCase().contains(_searchQuery.toLowerCase());
       return matchesFilter && matchesSearch;
     }).toList();
+
+    // Apply sort
+    switch (_sortOption) {
+      case _SortOption.nameAZ:
+        result.sort((a, b) => a.name.compareTo(b.name));
+        break;
+      case _SortOption.nameZA:
+        result.sort((a, b) => b.name.compareTo(a.name));
+        break;
+      case _SortOption.dealValueHigh:
+        result.sort((a, b) => b.dealValue.compareTo(a.dealValue));
+        break;
+      case _SortOption.dealValueLow:
+        result.sort((a, b) => a.dealValue.compareTo(b.dealValue));
+        break;
+      case _SortOption.priorityHigh:
+        const order = {'High': 0, 'Medium': 1, 'Low': 2};
+        result.sort(
+          (a, b) => (order[a.priority] ?? 1).compareTo(order[b.priority] ?? 1),
+        );
+        break;
+      case _SortOption.dateNewest:
+      case _SortOption.dateOldest:
+        // Keep original order (newest first by default, reverse for oldest)
+        if (_sortOption == _SortOption.dateOldest) {
+          result = result.reversed.toList();
+        }
+        break;
+    }
+    return result;
+  }
+
+  void _showSortSheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) => Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surface200,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Text(
+                'Sort Leads',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ...[
+                (
+                  _SortOption.dateNewest,
+                  Icons.calendar_today_rounded,
+                  'Newest First',
+                ),
+                (
+                  _SortOption.dateOldest,
+                  Icons.calendar_today_outlined,
+                  'Oldest First',
+                ),
+                (_SortOption.nameAZ, Icons.sort_by_alpha_rounded, 'Name A → Z'),
+                (_SortOption.nameZA, Icons.sort_by_alpha_rounded, 'Name Z → A'),
+                (
+                  _SortOption.dealValueHigh,
+                  Icons.trending_up_rounded,
+                  'Deal Value: High → Low',
+                ),
+                (
+                  _SortOption.dealValueLow,
+                  Icons.trending_down_rounded,
+                  'Deal Value: Low → High',
+                ),
+                (
+                  _SortOption.priorityHigh,
+                  Icons.priority_high_rounded,
+                  'Priority: High First',
+                ),
+              ].map((item) {
+                final (opt, icon, label) = item;
+                final isSelected = _sortOption == opt;
+                return ListTile(
+                  dense: true,
+                  leading: Icon(
+                    icon,
+                    size: 20,
+                    color: isSelected
+                        ? AppTheme.primary
+                        : AppTheme.textSecondary,
+                  ),
+                  title: Text(
+                    label,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                      color: isSelected
+                          ? AppTheme.primary
+                          : AppTheme.textPrimary,
+                    ),
+                  ),
+                  trailing: isSelected
+                      ? const Icon(
+                          Icons.check_rounded,
+                          color: AppTheme.primary,
+                          size: 18,
+                        )
+                      : null,
+                  onTap: () {
+                    setState(() => _sortOption = opt);
+                    Navigator.pop(ctx);
+                  },
+                );
+              }),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -233,7 +391,6 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final isTablet = MediaQuery.of(context).size.width >= 600;
 
     return Scaffold(
@@ -361,7 +518,7 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
               ),
             ),
 
-            // Results count
+            // Results count + sort
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
@@ -379,11 +536,13 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
                     ),
                     const Spacer(),
                     TextButton.icon(
-                      onPressed: () {},
+                      onPressed: _showSortSheet,
                       icon: const Icon(Icons.sort_rounded, size: 16),
-                      label: const Text('Sort'),
+                      label: Text(_sortLabel),
                       style: TextButton.styleFrom(
-                        foregroundColor: AppTheme.textSecondary,
+                        foregroundColor: _sortOption == _SortOption.dateNewest
+                            ? AppTheme.textSecondary
+                            : AppTheme.primary,
                         textStyle: GoogleFonts.plusJakartaSans(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
@@ -432,6 +591,8 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
                           (context, index) => LeadCardWidget(
                             lead: _filteredLeads[index],
                             index: index,
+                            onRemove: () =>
+                                removeLead(_filteredLeads[index].id),
                           ),
                           childCount: _filteredLeads.length,
                         ),
@@ -444,6 +605,8 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
                           (context, index) => LeadCardWidget(
                             lead: _filteredLeads[index],
                             index: index,
+                            onRemove: () =>
+                                removeLead(_filteredLeads[index].id),
                           ),
                           childCount: _filteredLeads.length,
                         ),
@@ -460,6 +623,25 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
         foregroundColor: Colors.white,
       ),
     );
+  }
+
+  String get _sortLabel {
+    switch (_sortOption) {
+      case _SortOption.nameAZ:
+        return 'Name A-Z';
+      case _SortOption.nameZA:
+        return 'Name Z-A';
+      case _SortOption.dealValueHigh:
+        return 'Value ↓';
+      case _SortOption.dealValueLow:
+        return 'Value ↑';
+      case _SortOption.priorityHigh:
+        return 'Priority';
+      case _SortOption.dateNewest:
+        return 'Sort';
+      case _SortOption.dateOldest:
+        return 'Oldest';
+    }
   }
 
   Widget _buildKpiSkeleton() {

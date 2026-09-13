@@ -2,6 +2,273 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../theme/app_theme.dart';
 
+// ─── Country Code Data ────────────────────────────────────────────────────────
+class _CountryCode {
+  final String flag;
+  final String name;
+  final String code;
+  const _CountryCode(this.flag, this.name, this.code);
+}
+
+const List<_CountryCode> _countryCodes = [
+  _CountryCode('🇮🇳', 'India', '+91'),
+  _CountryCode('🇺🇸', 'United States', '+1'),
+  _CountryCode('🇬🇧', 'United Kingdom', '+44'),
+  _CountryCode('🇦🇺', 'Australia', '+61'),
+  _CountryCode('🇨🇦', 'Canada', '+1'),
+  _CountryCode('🇦🇪', 'UAE', '+971'),
+  _CountryCode('🇸🇬', 'Singapore', '+65'),
+  _CountryCode('🇲🇾', 'Malaysia', '+60'),
+  _CountryCode('🇳🇿', 'New Zealand', '+64'),
+  _CountryCode('🇿🇦', 'South Africa', '+27'),
+  _CountryCode('🇩🇪', 'Germany', '+49'),
+  _CountryCode('🇫🇷', 'France', '+33'),
+  _CountryCode('🇮🇹', 'Italy', '+39'),
+  _CountryCode('🇪🇸', 'Spain', '+34'),
+  _CountryCode('🇳🇱', 'Netherlands', '+31'),
+  _CountryCode('🇸🇪', 'Sweden', '+46'),
+  _CountryCode('🇳🇴', 'Norway', '+47'),
+  _CountryCode('🇩🇰', 'Denmark', '+45'),
+  _CountryCode('🇨🇭', 'Switzerland', '+41'),
+  _CountryCode('🇧🇪', 'Belgium', '+32'),
+  _CountryCode('🇯🇵', 'Japan', '+81'),
+  _CountryCode('🇨🇳', 'China', '+86'),
+  _CountryCode('🇰🇷', 'South Korea', '+82'),
+  _CountryCode('🇧🇷', 'Brazil', '+55'),
+  _CountryCode('🇲🇽', 'Mexico', '+52'),
+  _CountryCode('🇦🇷', 'Argentina', '+54'),
+  _CountryCode('🇵🇰', 'Pakistan', '+92'),
+  _CountryCode('🇧🇩', 'Bangladesh', '+880'),
+  _CountryCode('🇱🇰', 'Sri Lanka', '+94'),
+  _CountryCode('🇳🇵', 'Nepal', '+977'),
+  _CountryCode('🇲🇻', 'Maldives', '+960'),
+  _CountryCode('🇧🇹', 'Bhutan', '+975'),
+  _CountryCode('🇮🇩', 'Indonesia', '+62'),
+  _CountryCode('🇵🇭', 'Philippines', '+63'),
+  _CountryCode('🇹🇭', 'Thailand', '+66'),
+  _CountryCode('🇻🇳', 'Vietnam', '+84'),
+  _CountryCode('🇸🇦', 'Saudi Arabia', '+966'),
+  _CountryCode('🇶🇦', 'Qatar', '+974'),
+  _CountryCode('🇰🇼', 'Kuwait', '+965'),
+  _CountryCode('🇧🇭', 'Bahrain', '+973'),
+  _CountryCode('🇴🇲', 'Oman', '+968'),
+  _CountryCode('🇮🇱', 'Israel', '+972'),
+  _CountryCode('🇹🇷', 'Turkey', '+90'),
+  _CountryCode('🇷🇺', 'Russia', '+7'),
+  _CountryCode('🇺🇦', 'Ukraine', '+380'),
+  _CountryCode('🇵🇱', 'Poland', '+48'),
+  _CountryCode('🇷🇴', 'Romania', '+40'),
+  _CountryCode('🇨🇿', 'Czech Republic', '+420'),
+  _CountryCode('🇭🇺', 'Hungary', '+36'),
+  _CountryCode('🇬🇷', 'Greece', '+30'),
+  _CountryCode('🇵🇹', 'Portugal', '+351'),
+  _CountryCode('🇫🇮', 'Finland', '+358'),
+  _CountryCode('🇦🇹', 'Austria', '+43'),
+  _CountryCode('🇮🇪', 'Ireland', '+353'),
+  _CountryCode('🇳🇬', 'Nigeria', '+234'),
+  _CountryCode('🇰🇪', 'Kenya', '+254'),
+  _CountryCode('🇬🇭', 'Ghana', '+233'),
+  _CountryCode('🇪🇹', 'Ethiopia', '+251'),
+  _CountryCode('🇹🇿', 'Tanzania', '+255'),
+  _CountryCode('🇺🇬', 'Uganda', '+256'),
+  _CountryCode('🇿🇼', 'Zimbabwe', '+263'),
+  _CountryCode('🇲🇦', 'Morocco', '+212'),
+  _CountryCode('🇪🇬', 'Egypt', '+20'),
+  _CountryCode('🇹🇳', 'Tunisia', '+216'),
+  _CountryCode('🇩🇿', 'Algeria', '+213'),
+  _CountryCode('🇨🇴', 'Colombia', '+57'),
+  _CountryCode('🇵🇪', 'Peru', '+51'),
+  _CountryCode('🇨🇱', 'Chile', '+56'),
+  _CountryCode('🇻🇪', 'Venezuela', '+58'),
+  _CountryCode('🇪🇨', 'Ecuador', '+593'),
+  _CountryCode('🇧🇴', 'Bolivia', '+591'),
+  _CountryCode('🇵🇾', 'Paraguay', '+595'),
+  _CountryCode('🇺🇾', 'Uruguay', '+598'),
+  _CountryCode('🇨🇷', 'Costa Rica', '+506'),
+  _CountryCode('🇵🇦', 'Panama', '+507'),
+  _CountryCode('🇨🇺', 'Cuba', '+53'),
+  _CountryCode('🇩🇴', 'Dominican Republic', '+1'),
+  _CountryCode('🇯🇲', 'Jamaica', '+1'),
+  _CountryCode('🇹🇹', 'Trinidad & Tobago', '+1'),
+  _CountryCode('🇭🇰', 'Hong Kong', '+852'),
+  _CountryCode('🇹🇼', 'Taiwan', '+886'),
+  _CountryCode('🇲🇴', 'Macau', '+853'),
+  _CountryCode('🇲🇲', 'Myanmar', '+95'),
+  _CountryCode('🇰🇭', 'Cambodia', '+855'),
+  _CountryCode('🇱🇦', 'Laos', '+856'),
+  _CountryCode('🇧🇳', 'Brunei', '+673'),
+  _CountryCode('🇹🇱', 'Timor-Leste', '+670'),
+  _CountryCode('🇵🇬', 'Papua New Guinea', '+675'),
+  _CountryCode('🇫🇯', 'Fiji', '+679'),
+  _CountryCode('🇼🇸', 'Samoa', '+685'),
+  _CountryCode('🇹🇴', 'Tonga', '+676'),
+];
+
+// ─── Country Code Picker Widget ───────────────────────────────────────────────
+class _CountryCodePicker extends StatefulWidget {
+  final _CountryCode initialCountry;
+  final ValueChanged<_CountryCode> onChanged;
+
+  const _CountryCodePicker({
+    required this.initialCountry,
+    required this.onChanged,
+  });
+
+  @override
+  State<_CountryCodePicker> createState() => _CountryCodePickerState();
+}
+
+class _CountryCodePickerState extends State<_CountryCodePicker> {
+  late _CountryCode _selected;
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = widget.initialCountry;
+  }
+
+  void _showPicker() {
+    final searchCtrl = TextEditingController();
+    List<_CountryCode> filtered = List.from(_countryCodes);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) => DraggableScrollableSheet(
+          initialChildSize: 0.7,
+          maxChildSize: 0.9,
+          minChildSize: 0.4,
+          expand: false,
+          builder: (_, scrollCtrl) => Column(
+            children: [
+              Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: AppTheme.surface200,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: TextField(
+                  controller: searchCtrl,
+                  decoration: InputDecoration(
+                    hintText: 'Search country...',
+                    prefixIcon: const Icon(Icons.search_rounded, size: 18),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onChanged: (q) {
+                    setModalState(() {
+                      filtered = _countryCodes
+                          .where(
+                            (c) =>
+                                c.name.toLowerCase().contains(
+                                  q.toLowerCase(),
+                                ) ||
+                                c.code.contains(q),
+                          )
+                          .toList();
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollCtrl,
+                  itemCount: filtered.length,
+                  itemBuilder: (_, i) {
+                    final c = filtered[i];
+                    final isSelected =
+                        c.code == _selected.code && c.name == _selected.name;
+                    return ListTile(
+                      leading: Text(
+                        c.flag,
+                        style: const TextStyle(fontSize: 22),
+                      ),
+                      title: Text(
+                        c.name,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14,
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                        ),
+                      ),
+                      trailing: Text(
+                        c.code,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          color: AppTheme.textSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      selected: isSelected,
+                      selectedTileColor: AppTheme.primaryContainer,
+                      onTap: () {
+                        setState(() => _selected = c);
+                        widget.onChanged(c);
+                        Navigator.pop(ctx);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _showPicker,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+        decoration: BoxDecoration(
+          border: Border(right: BorderSide(color: AppTheme.surface200)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(_selected.flag, style: const TextStyle(fontSize: 18)),
+            const SizedBox(width: 4),
+            Text(
+              _selected.code,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: AppTheme.textPrimary,
+              ),
+            ),
+            const Icon(
+              Icons.arrow_drop_down_rounded,
+              size: 16,
+              color: AppTheme.textMuted,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Main Widget ──────────────────────────────────────────────────────────────
+
 class SectionRelationsWidget extends StatefulWidget {
   const SectionRelationsWidget({super.key});
 
@@ -10,7 +277,7 @@ class SectionRelationsWidget extends StatefulWidget {
 }
 
 class _SectionRelationsWidgetState extends State<SectionRelationsWidget> {
-  // Start with empty list — no default Sneha Sharma
+  // Start with empty list — no default
   final List<_RelationData> _relations = [];
 
   static const _relationTypes = [
@@ -68,6 +335,7 @@ class _SectionRelationsWidgetState extends State<SectionRelationsWidget> {
           name: '',
           relation: 'Friend',
           phone: '',
+          countryCode: _countryCodes.first,
           age: '',
           occupation: '',
           company: '',
@@ -190,6 +458,7 @@ class _RelationData {
   String name;
   String relation;
   String phone;
+  _CountryCode countryCode;
   String age;
   String occupation;
   String company;
@@ -200,6 +469,7 @@ class _RelationData {
     required this.name,
     required this.relation,
     required this.phone,
+    required this.countryCode,
     required this.age,
     required this.occupation,
     required this.company,
@@ -211,6 +481,7 @@ class _RelationData {
     String? name,
     String? relation,
     String? phone,
+    _CountryCode? countryCode,
     String? age,
     String? occupation,
     String? company,
@@ -221,6 +492,7 @@ class _RelationData {
       name: name ?? this.name,
       relation: relation ?? this.relation,
       phone: phone ?? this.phone,
+      countryCode: countryCode ?? this.countryCode,
       age: age ?? this.age,
       occupation: occupation ?? this.occupation,
       company: company ?? this.company,
@@ -263,6 +535,7 @@ class _RelationCardState extends State<_RelationCard> {
   late TextEditingController _occupationCtrl;
   late TextEditingController _companyCtrl;
   late String _selectedRelation;
+  late _CountryCode _selectedCountry;
 
   @override
   void initState() {
@@ -273,6 +546,7 @@ class _RelationCardState extends State<_RelationCard> {
     _occupationCtrl = TextEditingController(text: widget.relation.occupation);
     _companyCtrl = TextEditingController(text: widget.relation.company);
     _selectedRelation = widget.relation.relation;
+    _selectedCountry = widget.relation.countryCode;
   }
 
   @override
@@ -286,16 +560,33 @@ class _RelationCardState extends State<_RelationCard> {
   }
 
   void _save() {
-    // After saving: keep expanded = true so user sees the saved profile card
+    if (_nameCtrl.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Please enter the relation\'s name',
+            style: GoogleFonts.plusJakartaSans(fontSize: 13),
+          ),
+          backgroundColor: AppTheme.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+      return;
+    }
+    // After saving: COLLAPSE the card (isExpanded = false)
     widget.onUpdate(
       widget.relation.copyWith(
         name: _nameCtrl.text,
         relation: _selectedRelation,
         phone: _phoneCtrl.text,
+        countryCode: _selectedCountry,
         age: _ageCtrl.text,
         occupation: _occupationCtrl.text,
         company: _companyCtrl.text,
-        isExpanded: true, // Stay expanded after save
+        isExpanded: false, // Collapse after save
         isSaved: true,
       ),
     );
@@ -437,7 +728,7 @@ class _RelationCardState extends State<_RelationCard> {
                           Text(
                             [
                               if (widget.relation.phone.isNotEmpty)
-                                widget.relation.phone,
+                                '${widget.relation.countryCode.code} ${widget.relation.phone}',
                               if (widget.relation.age.isNotEmpty)
                                 '${widget.relation.age} yrs',
                               if (widget.relation.occupation.isNotEmpty)
@@ -525,13 +816,21 @@ class _RelationCardState extends State<_RelationCard> {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        // Phone (stacked)
+                        // Phone with country code dropdown (stacked)
                         TextFormField(
                           controller: _phoneCtrl,
                           keyboardType: TextInputType.phone,
-                          decoration: const InputDecoration(
-                            labelText: 'Phone',
-                            prefixIcon: Icon(Icons.phone_outlined, size: 16),
+                          decoration: InputDecoration(
+                            labelText: 'Phone Number',
+                            prefixIcon: _CountryCodePicker(
+                              initialCountry: _selectedCountry,
+                              onChanged: (c) =>
+                                  setState(() => _selectedCountry = c),
+                            ),
+                            prefixIconConstraints: const BoxConstraints(
+                              minWidth: 0,
+                              minHeight: 0,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 10),

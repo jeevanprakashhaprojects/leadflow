@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../routes/app_routes.dart';
 import '../../theme/app_theme.dart';
+import '../leads_list_screen/leads_list_screen.dart';
 import './widgets/section_address_widget.dart';
 import './widgets/section_company_info_widget.dart';
 import './widgets/section_contact_info_widget.dart';
@@ -273,6 +274,26 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
     await Future.delayed(const Duration(milliseconds: 1500));
     if (mounted) {
       setState(() => _isSaving = false);
+
+      // Add new lead to global list so it appears immediately in leads list
+      final newId = DateTime.now().millisecondsSinceEpoch.toString();
+      globalLeadMaps.insert(0, {
+        'id': newId,
+        'name': 'New Lead',
+        'company': 'New Company',
+        'status': 'New',
+        'priority': 'Medium',
+        'score': 50,
+        'dealValue': 0.0,
+        'ownerInitials': 'PS',
+        'ownerName': 'Priya Sharma',
+        'lastContact': 'Just now',
+        'phone': '',
+        'email': '',
+        'industry': 'General',
+        'tags': [],
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(

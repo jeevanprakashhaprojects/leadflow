@@ -493,7 +493,7 @@ class _LeadDetailScreenState extends State<LeadDetailScreen>
 
   Widget _buildQuickActions() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
       decoration: BoxDecoration(
         color: AppTheme.surfaceLight,
         boxShadow: [
@@ -506,42 +506,34 @@ class _LeadDetailScreenState extends State<LeadDetailScreen>
       ),
       child: Row(
         children: [
-          Expanded(
-            child: _QuickActionButton(
-              icon: Icons.phone_rounded,
-              label: 'Call',
-              color: AppTheme.success,
-              onTap: () => _showSnackBar('Calling ${widget.lead.name}...'),
-            ),
+          _QuickActionButton(
+            icon: Icons.phone_rounded,
+            label: 'Call',
+            color: AppTheme.success,
+            onTap: () => _showSnackBar('Calling ${widget.lead.name}...'),
           ),
           const SizedBox(width: 8),
-          Expanded(
-            child: _QuickActionButton(
-              icon: Icons.email_rounded,
-              label: 'Email',
-              color: AppTheme.primary,
-              onTap: () =>
-                  _showSnackBar('Opening email to ${widget.lead.email}...'),
-            ),
+          _QuickActionButton(
+            icon: Icons.email_rounded,
+            label: 'Email',
+            color: AppTheme.primary,
+            onTap: () =>
+                _showSnackBar('Opening email to ${widget.lead.email}...'),
           ),
           const SizedBox(width: 8),
-          Expanded(
-            child: _QuickActionButton(
-              icon: Icons.chat_rounded,
-              label: 'WhatsApp',
-              color: const Color(0xFF25D366),
-              onTap: () =>
-                  _showSnackBar('Opening WhatsApp for ${widget.lead.name}...'),
-            ),
+          _QuickActionButton(
+            icon: Icons.chat_rounded,
+            label: 'WhatsApp',
+            color: const Color(0xFF25D366),
+            onTap: () =>
+                _showSnackBar('Opening WhatsApp for ${widget.lead.name}...'),
           ),
           const SizedBox(width: 8),
-          Expanded(
-            child: _QuickActionButton(
-              icon: Icons.event_rounded,
-              label: 'Schedule',
-              color: AppTheme.warning,
-              onTap: () => _showSnackBar('Scheduling follow-up...'),
-            ),
+          _QuickActionButton(
+            icon: Icons.event_rounded,
+            label: 'Schedule',
+            color: AppTheme.warning,
+            onTap: () => _showScheduleDialog(),
           ),
         ],
       ),
@@ -562,6 +554,160 @@ class _LeadDetailScreenState extends State<LeadDetailScreen>
     );
   }
 
+  void _showScheduleDialog() {
+    DateTime selectedDate = DateTime.now().add(const Duration(days: 1));
+    TimeOfDay selectedTime = const TimeOfDay(hour: 10, minute: 0);
+    String selectedType = 'Follow-up';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            'Schedule Follow-up',
+            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Type',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 8,
+                children: ['Follow-up', 'Appointment', 'Video Call', 'Callback']
+                    .map(
+                      (t) => ChoiceChip(
+                        label: Text(
+                          t,
+                          style: GoogleFonts.plusJakartaSans(fontSize: 12),
+                        ),
+                        selected: selectedType == t,
+                        onSelected: (_) =>
+                            setDialogState(() => selectedType = t),
+                        selectedColor: AppTheme.primaryContainer,
+                      ),
+                    )
+                    .toList(),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: () async {
+                  final d = await showDatePicker(
+                    context: ctx,
+                    initialDate: selectedDate,
+                    firstDate: DateTime.now(),
+                    lastDate: DateTime.now().add(const Duration(days: 365)),
+                  );
+                  if (d != null) setDialogState(() => selectedDate = d);
+                },
+                icon: const Icon(Icons.calendar_today_rounded, size: 16),
+                label: Text(
+                  '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
+                  style: GoogleFonts.plusJakartaSans(fontSize: 13),
+                ),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: () async {
+                  final t = await showTimePicker(
+                    context: ctx,
+                    initialTime: selectedTime,
+                  );
+                  if (t != null) setDialogState(() => selectedTime = t);
+                },
+                icon: const Icon(Icons.access_time_rounded, size: 16),
+                label: Text(
+                  selectedTime.format(ctx),
+                  style: GoogleFonts.plusJakartaSans(fontSize: 13),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _showSnackBar(
+                  '$selectedType scheduled for ${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
+                );
+              },
+              style: FilledButton.styleFrom(backgroundColor: AppTheme.primary),
+              child: const Text('Schedule'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showChangeStatusDialog() {
+    const statuses = [
+      'New',
+      'Contacted',
+      'Proposed',
+      'Qualified',
+      'Negotiations',
+      'Result',
+      'Won',
+      'Lost',
+    ];
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Change Status',
+          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: statuses.map((s) {
+            final color = AppTheme.leadStatusColor(s);
+            final isCurrent = s == widget.lead.status;
+            return ListTile(
+              dense: true,
+              leading: Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              ),
+              title: Text(
+                s,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w400,
+                  color: isCurrent ? color : AppTheme.textPrimary,
+                ),
+              ),
+              trailing: isCurrent
+                  ? Icon(Icons.check_rounded, color: color, size: 18)
+                  : null,
+              onTap: () {
+                Navigator.pop(ctx);
+                _showSnackBar('Status changed to $s');
+              },
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
   void _showMoreOptions() {
     showModalBottomSheet(
       context: context,
@@ -576,31 +722,77 @@ class _LeadDetailScreenState extends State<LeadDetailScreen>
             _OptionTile(
               icon: Icons.edit_rounded,
               label: 'Edit Lead',
-              onTap: () => Navigator.pop(context),
+              onTap: () {
+                Navigator.pop(context);
+                context.go(AppRoutes.addLeadScreen);
+              },
             ),
             _OptionTile(
               icon: Icons.swap_horiz_rounded,
               label: 'Change Status',
-              onTap: () => Navigator.pop(context),
+              onTap: () {
+                Navigator.pop(context);
+                _showChangeStatusDialog();
+              },
             ),
             _OptionTile(
               icon: Icons.person_add_rounded,
               label: 'Reassign Lead',
-              onTap: () => Navigator.pop(context),
+              onTap: () {
+                Navigator.pop(context);
+                _showSnackBar('Reassign lead feature coming soon');
+              },
             ),
             _OptionTile(
               icon: Icons.share_rounded,
               label: 'Share Lead',
-              onTap: () => Navigator.pop(context),
+              onTap: () {
+                Navigator.pop(context);
+                _showSnackBar('Share lead feature coming soon');
+              },
             ),
             _OptionTile(
               icon: Icons.delete_outline_rounded,
               label: 'Delete Lead',
               color: AppTheme.error,
-              onTap: () => Navigator.pop(context),
+              onTap: () {
+                Navigator.pop(context);
+                _showDeleteConfirmation();
+              },
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Delete Lead',
+          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+        ),
+        content: Text(
+          'Are you sure you want to delete ${widget.lead.name}? This action cannot be undone.',
+          style: GoogleFonts.plusJakartaSans(fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              context.go(AppRoutes.leadsListScreen);
+            },
+            style: FilledButton.styleFrom(backgroundColor: AppTheme.error),
+            child: const Text('Delete'),
+          ),
+        ],
       ),
     );
   }
@@ -890,28 +1082,32 @@ class _QuickActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: color.withAlpha(20),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withAlpha(60)),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, size: 20, color: color),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: color,
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+          decoration: BoxDecoration(
+            color: color.withAlpha(20),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: color.withAlpha(60)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 20, color: color),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

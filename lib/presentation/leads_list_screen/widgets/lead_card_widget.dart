@@ -9,8 +9,14 @@ import '../../../routes/app_routes.dart';
 class LeadCardWidget extends StatefulWidget {
   final LeadModel lead;
   final int index;
+  final VoidCallback? onRemove;
 
-  const LeadCardWidget({super.key, required this.lead, required this.index});
+  const LeadCardWidget({
+    super.key,
+    required this.lead,
+    required this.index,
+    this.onRemove,
+  });
 
   @override
   State<LeadCardWidget> createState() => _LeadCardWidgetState();
@@ -125,6 +131,7 @@ class _LeadCardWidgetState extends State<LeadCardWidget>
                 ) ??
                 false;
           },
+          onDismissed: (_) => widget.onRemove?.call(),
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             decoration: BoxDecoration(
@@ -199,11 +206,14 @@ class _LeadCardWidgetState extends State<LeadCardWidget>
                           color: AppTheme.textMuted,
                         ),
                         const SizedBox(width: 4),
-                        Text(
-                          lead.company,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            color: AppTheme.textSecondary,
+                        Expanded(
+                          child: Text(
+                            lead.company,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              color: AppTheme.textSecondary,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -226,48 +236,7 @@ class _LeadCardWidgetState extends State<LeadCardWidget>
                       ],
                     ),
                     const SizedBox(height: 12),
-                    // Score bar
-                    Row(
-                      children: [
-                        Text(
-                          'Score',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11,
-                            color: AppTheme.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(3),
-                            child: LinearProgressIndicator(
-                              value: lead.score / 100,
-                              backgroundColor: AppTheme.surface200,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                lead.score >= 70
-                                    ? AppTheme.success
-                                    : lead.score >= 40
-                                    ? AppTheme.warning
-                                    : AppTheme.error,
-                              ),
-                              minHeight: 5,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '${lead.score}',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.textPrimary,
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    // Bottom row: deal value + tags + owner
+                    // Bottom row: deal value + tags + owner avatar (tappable) + actions
                     Row(
                       children: [
                         Text(
@@ -300,17 +269,21 @@ class _LeadCardWidgetState extends State<LeadCardWidget>
                             ),
                           ),
                         const Spacer(),
-                        Tooltip(
-                          message: lead.ownerName,
-                          child: CircleAvatar(
-                            radius: 16,
-                            backgroundColor: AppTheme.primaryContainer,
-                            child: Text(
-                              lead.ownerInitials,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                color: AppTheme.primary,
+                        // Owner avatar — taps to employee details
+                        GestureDetector(
+                          onTap: () => _showOwnerDetails(context),
+                          child: Tooltip(
+                            message: lead.ownerName,
+                            child: CircleAvatar(
+                              radius: 16,
+                              backgroundColor: AppTheme.primaryContainer,
+                              child: Text(
+                                lead.ownerInitials,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.primary,
+                                ),
                               ),
                             ),
                           ),
@@ -342,20 +315,160 @@ class _LeadCardWidgetState extends State<LeadCardWidget>
     );
   }
 
+  void _showOwnerDetails(BuildContext context) {
+    // Navigate to employee details — show a bottom sheet with owner info
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 36,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: AppTheme.surface200,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            CircleAvatar(
+              radius: 36,
+              backgroundColor: AppTheme.primaryContainer,
+              child: Text(
+                widget.lead.ownerInitials,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.primary,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              widget.lead.ownerName,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryContainer,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                _getOwnerRole(widget.lead.ownerInitials),
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.primary,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _OwnerStatItem(label: 'Leads', value: '12'),
+                _OwnerStatItem(label: 'Won', value: '4'),
+                _OwnerStatItem(label: 'Rate', value: '33%'),
+              ],
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () => Navigator.pop(ctx),
+                icon: const Icon(Icons.person_rounded, size: 18),
+                label: Text(
+                  'View Full Profile',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppTheme.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getOwnerRole(String initials) {
+    switch (initials) {
+      case 'PS':
+        return 'Admin · ADM-1042';
+      case 'RS':
+        return 'Senior Rep · EMP-2031';
+      case 'AP':
+        return 'Manager · EMP-1187';
+      case 'KM':
+        return 'Sales Rep · EMP-3045';
+      default:
+        return 'Employee';
+    }
+  }
+
   void _showLeadActions(BuildContext context) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (ctx) => _LeadActionsSheet(lead: widget.lead),
+      builder: (ctx) =>
+          _LeadActionsSheet(lead: widget.lead, onRemove: widget.onRemove),
+    );
+  }
+}
+
+class _OwnerStatItem extends StatelessWidget {
+  final String label;
+  final String value;
+  const _OwnerStatItem({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.primary,
+          ),
+        ),
+        Text(
+          label,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 12,
+            color: AppTheme.textSecondary,
+          ),
+        ),
+      ],
     );
   }
 }
 
 class _LeadActionsSheet extends StatelessWidget {
   final LeadModel lead;
-  const _LeadActionsSheet({required this.lead});
+  final VoidCallback? onRemove;
+  const _LeadActionsSheet({required this.lead, this.onRemove});
 
   @override
   Widget build(BuildContext context) {
@@ -390,38 +503,268 @@ class _LeadActionsSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            _ActionTile(
-              Icons.edit_outlined,
-              'Edit Lead',
-              AppTheme.primary,
-              () => Navigator.pop(context),
-            ),
+            _ActionTile(Icons.edit_outlined, 'Edit Lead', AppTheme.primary, () {
+              Navigator.pop(context);
+              context.go(AppRoutes.addLeadScreen);
+            }),
             _ActionTile(
               Icons.phone_outlined,
               'Call ${lead.name.split(' ')[0]}',
               AppTheme.success,
-              () => Navigator.pop(context),
+              () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Calling ${lead.name} at ${lead.phone}...',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 13),
+                    ),
+                    backgroundColor: AppTheme.success,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                );
+              },
             ),
             _ActionTile(
               Icons.schedule_rounded,
               'Schedule Follow-up',
               AppTheme.warning,
-              () => Navigator.pop(context),
+              () {
+                Navigator.pop(context);
+                _showScheduleDialog(context);
+              },
             ),
             _ActionTile(
               Icons.swap_horiz_rounded,
               'Change Status',
               AppTheme.secondary,
-              () => Navigator.pop(context),
+              () {
+                Navigator.pop(context);
+                _showChangeStatusDialog(context);
+              },
             ),
             _ActionTile(
               Icons.delete_outline_rounded,
               'Remove Lead',
               AppTheme.error,
-              () => Navigator.pop(context),
+              () {
+                Navigator.pop(context);
+                _showDeleteConfirmation(context);
+              },
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showScheduleDialog(BuildContext context) {
+    DateTime selectedDate = DateTime.now().add(const Duration(days: 1));
+    TimeOfDay selectedTime = const TimeOfDay(hour: 10, minute: 0);
+    String selectedType = 'Follow-up';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            'Schedule Follow-up',
+            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Type',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: ['Follow-up', 'Appointment', 'Video Call', 'Callback']
+                    .map(
+                      (t) => ChoiceChip(
+                        label: Text(
+                          t,
+                          style: GoogleFonts.plusJakartaSans(fontSize: 12),
+                        ),
+                        selected: selectedType == t,
+                        onSelected: (_) =>
+                            setDialogState(() => selectedType = t),
+                        selectedColor: AppTheme.primaryContainer,
+                      ),
+                    )
+                    .toList(),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: () async {
+                  final d = await showDatePicker(
+                    context: ctx,
+                    initialDate: selectedDate,
+                    firstDate: DateTime.now(),
+                    lastDate: DateTime.now().add(const Duration(days: 365)),
+                  );
+                  if (d != null) setDialogState(() => selectedDate = d);
+                },
+                icon: const Icon(Icons.calendar_today_rounded, size: 16),
+                label: Text(
+                  '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
+                  style: GoogleFonts.plusJakartaSans(fontSize: 13),
+                ),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: () async {
+                  final t = await showTimePicker(
+                    context: ctx,
+                    initialTime: selectedTime,
+                  );
+                  if (t != null) setDialogState(() => selectedTime = t);
+                },
+                icon: const Icon(Icons.access_time_rounded, size: 16),
+                label: Text(
+                  selectedTime.format(ctx),
+                  style: GoogleFonts.plusJakartaSans(fontSize: 13),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      '$selectedType scheduled for ${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 13),
+                    ),
+                    backgroundColor: AppTheme.warning,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                );
+              },
+              style: FilledButton.styleFrom(backgroundColor: AppTheme.primary),
+              child: const Text('Schedule'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showChangeStatusDialog(BuildContext context) {
+    const statuses = [
+      'New',
+      'Contacted',
+      'Proposed',
+      'Qualified',
+      'Negotiations',
+      'Result',
+      'Won',
+      'Lost',
+    ];
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Change Status',
+          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: statuses.map((s) {
+            final color = AppTheme.leadStatusColor(s);
+            final isCurrent = s == lead.status;
+            return ListTile(
+              dense: true,
+              leading: Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              ),
+              title: Text(
+                s,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w400,
+                  color: isCurrent ? color : AppTheme.textPrimary,
+                ),
+              ),
+              trailing: isCurrent
+                  ? Icon(Icons.check_rounded, color: color, size: 18)
+                  : null,
+              onTap: () {
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Status changed to $s',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 13),
+                    ),
+                    backgroundColor: color,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                );
+              },
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Remove Lead',
+          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+        ),
+        content: Text(
+          'Remove ${lead.name} from your pipeline? This cannot be undone.',
+          style: GoogleFonts.plusJakartaSans(fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              onRemove?.call();
+            },
+            style: FilledButton.styleFrom(backgroundColor: AppTheme.error),
+            child: const Text('Remove'),
+          ),
+        ],
       ),
     );
   }

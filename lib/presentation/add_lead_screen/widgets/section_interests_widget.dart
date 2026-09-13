@@ -317,12 +317,102 @@ class _NomineesSectionState extends State<_NomineesSection> {
     setState(() => _nominees.removeAt(index));
   }
 
+  double get _totalShare => _nominees.fold<double>(
+    0,
+    (sum, n) => sum + (double.tryParse(n.shareCtrl.text) ?? 0),
+  );
+
+  bool get _isShareValid => _nominees.isEmpty || _totalShare == 100;
+  bool get _isShareExceeded => _totalShare > 100;
+
+  void _trySaveNominee(int index) {
+    final nominee = _nominees[index];
+    if (nominee.nameCtrl.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Please enter nominee name',
+            style: GoogleFonts.plusJakartaSans(fontSize: 13),
+          ),
+          backgroundColor: AppTheme.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+      return;
+    }
+    final share = double.tryParse(nominee.shareCtrl.text) ?? 0;
+    if (share <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Please enter a valid share percentage',
+            style: GoogleFonts.plusJakartaSans(fontSize: 13),
+          ),
+          backgroundColor: AppTheme.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+      return;
+    }
+    // Check if adding/updating this nominee would exceed 100%
+    final otherShares = _nominees
+        .asMap()
+        .entries
+        .where((e) => e.key != index)
+        .fold<double>(
+          0,
+          (sum, e) => sum + (double.tryParse(e.value.shareCtrl.text) ?? 0),
+        );
+    if (otherShares + share > 100) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Total nominee share cannot exceed 100%. Remaining: ${(100 - otherShares).toStringAsFixed(0)}%',
+            style: GoogleFonts.plusJakartaSans(fontSize: 13),
+          ),
+          backgroundColor: AppTheme.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+      return;
+    }
+    setState(() => nominee.isSaved = true);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(
+              Icons.check_circle_rounded,
+              color: Colors.white,
+              size: 16,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              '${nominee.nameCtrl.text.split(' ').first} saved (${share.toStringAsFixed(0)}%)',
+              style: GoogleFonts.plusJakartaSans(fontSize: 13),
+            ),
+          ],
+        ),
+        backgroundColor: AppTheme.success,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final totalShare = _nominees.fold<double>(
-      0,
-      (sum, n) => sum + (double.tryParse(n.shareCtrl.text) ?? 0),
-    );
+    final totalShare = _totalShare;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -348,29 +438,66 @@ class _NomineesSectionState extends State<_NomineesSection> {
             index: i,
             onRemove: () => _removeNominee(i),
             onChanged: () => setState(() {}),
+            onSave: () => _trySaveNominee(i),
           );
         }),
-        if (_nominees.isNotEmpty && totalShare != 100)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+        if (_nominees.isNotEmpty) ...[
+          Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: _isShareExceeded
+                  ? AppTheme.error.withAlpha(20)
+                  : totalShare == 100
+                  ? AppTheme.success.withAlpha(20)
+                  : AppTheme.warning.withAlpha(20),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: _isShareExceeded
+                    ? AppTheme.error.withAlpha(80)
+                    : totalShare == 100
+                    ? AppTheme.success.withAlpha(80)
+                    : AppTheme.warning.withAlpha(80),
+              ),
+            ),
             child: Row(
               children: [
                 Icon(
-                  Icons.info_outline_rounded,
-                  size: 14,
-                  color: totalShare > 100 ? AppTheme.error : AppTheme.warning,
+                  _isShareExceeded
+                      ? Icons.error_outline_rounded
+                      : totalShare == 100
+                      ? Icons.check_circle_outline_rounded
+                      : Icons.info_outline_rounded,
+                  size: 16,
+                  color: _isShareExceeded
+                      ? AppTheme.error
+                      : totalShare == 100
+                      ? AppTheme.success
+                      : AppTheme.warning,
                 ),
-                const SizedBox(width: 6),
-                Text(
-                  'Total share: ${totalShare.toStringAsFixed(0)}% (must equal 100%)',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11,
-                    color: totalShare > 100 ? AppTheme.error : AppTheme.warning,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _isShareExceeded
+                        ? 'Total share ${totalShare.toStringAsFixed(0)}% exceeds 100% — please adjust'
+                        : totalShare == 100
+                        ? 'Total share is 100% ✓'
+                        : 'Total share: ${totalShare.toStringAsFixed(0)}% (must equal 100%)',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: _isShareExceeded
+                          ? AppTheme.error
+                          : totalShare == 100
+                          ? AppTheme.success
+                          : AppTheme.warning,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
+        ],
         GestureDetector(
           onTap: _addNominee,
           child: Container(
@@ -410,6 +537,7 @@ class _NomineeData {
   final nameCtrl = TextEditingController();
   final shareCtrl = TextEditingController();
   String relation = 'Spouse';
+  bool isSaved = false;
 }
 
 class _NomineeCard extends StatefulWidget {
@@ -418,6 +546,7 @@ class _NomineeCard extends StatefulWidget {
   final int index;
   final VoidCallback onRemove;
   final VoidCallback onChanged;
+  final VoidCallback onSave;
 
   const _NomineeCard({
     super.key,
@@ -426,6 +555,7 @@ class _NomineeCard extends StatefulWidget {
     required this.index,
     required this.onRemove,
     required this.onChanged,
+    required this.onSave,
   });
 
   @override
@@ -435,13 +565,17 @@ class _NomineeCard extends StatefulWidget {
 class _NomineeCardState extends State<_NomineeCard> {
   @override
   Widget build(BuildContext context) {
+    final isSaved = widget.nominee.isSaved;
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppTheme.surface100,
+        color: isSaved ? AppTheme.success.withAlpha(10) : AppTheme.surface100,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppTheme.surface200),
+        border: Border.all(
+          color: isSaved ? AppTheme.success.withAlpha(80) : AppTheme.surface200,
+          width: isSaved ? 1.5 : 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -453,10 +587,31 @@ class _NomineeCardState extends State<_NomineeCard> {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: AppTheme.primary,
+                  color: isSaved ? AppTheme.success : AppTheme.primary,
                 ),
               ),
+              if (isSaved) ...[
+                const SizedBox(width: 6),
+                const Icon(
+                  Icons.check_circle_rounded,
+                  size: 14,
+                  color: AppTheme.success,
+                ),
+              ],
               const Spacer(),
+              if (isSaved)
+                GestureDetector(
+                  onTap: () {
+                    setState(() => widget.nominee.isSaved = false);
+                    widget.onChanged();
+                  },
+                  child: const Icon(
+                    Icons.edit_outlined,
+                    size: 16,
+                    color: AppTheme.primary,
+                  ),
+                ),
+              const SizedBox(width: 8),
               GestureDetector(
                 onTap: widget.onRemove,
                 child: const Icon(
@@ -467,59 +622,157 @@ class _NomineeCardState extends State<_NomineeCard> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          TextFormField(
-            controller: widget.nominee.nameCtrl,
-            textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(labelText: 'Nominee Name'),
-            onChanged: (_) => widget.onChanged(),
-          ),
-          const SizedBox(height: 10),
-          InputDecorator(
-            decoration: const InputDecoration(
-              labelText: 'Relation',
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 10,
-              ),
+          if (isSaved) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    widget.nominee.nameCtrl.text,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    widget.nominee.relation,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.primary,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.success.withAlpha(30),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '${widget.nominee.shareCtrl.text}%',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.success,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: widget.nominee.relation,
-                isDense: true,
-                isExpanded: true,
-                items: widget.relationTypes
-                    .map(
-                      (r) => DropdownMenuItem(
-                        value: r,
-                        child: Text(
-                          r,
-                          style: GoogleFonts.plusJakartaSans(fontSize: 13),
+          ] else ...[
+            const SizedBox(height: 10),
+            TextFormField(
+              controller: widget.nominee.nameCtrl,
+              textCapitalization: TextCapitalization.words,
+              decoration: const InputDecoration(labelText: 'Nominee Name'),
+              onChanged: (_) => widget.onChanged(),
+            ),
+            const SizedBox(height: 10),
+            InputDecorator(
+              decoration: const InputDecoration(
+                labelText: 'Relation',
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: widget.nominee.relation,
+                  isDense: true,
+                  isExpanded: true,
+                  items: widget.relationTypes
+                      .map(
+                        (r) => DropdownMenuItem(
+                          value: r,
+                          child: Text(
+                            r,
+                            style: GoogleFonts.plusJakartaSans(fontSize: 13),
+                          ),
                         ),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (v) {
-                  if (v != null) {
-                    setState(() => widget.nominee.relation = v);
-                    widget.onChanged();
-                  }
-                },
-                icon: const Icon(Icons.expand_more_rounded, size: 16),
+                      )
+                      .toList(),
+                  onChanged: (v) {
+                    if (v != null) {
+                      setState(() => widget.nominee.relation = v);
+                      widget.onChanged();
+                    }
+                  },
+                  icon: const Icon(Icons.expand_more_rounded, size: 16),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 10),
-          TextFormField(
-            controller: widget.nominee.shareCtrl,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Share %',
-              hintText: 'e.g. 50',
-              suffixText: '%',
+            const SizedBox(height: 10),
+            TextFormField(
+              controller: widget.nominee.shareCtrl,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Share %',
+                hintText: 'e.g. 50',
+                suffixText: '%',
+              ),
+              onChanged: (_) => widget.onChanged(),
             ),
-            onChanged: (_) => widget.onChanged(),
-          ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TextButton.icon(
+                  onPressed: widget.onRemove,
+                  icon: const Icon(
+                    Icons.delete_outline_rounded,
+                    size: 16,
+                    color: AppTheme.error,
+                  ),
+                  label: Text(
+                    'Remove',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      color: AppTheme.error,
+                    ),
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: widget.onSave,
+                  icon: const Icon(Icons.save_rounded, size: 16),
+                  label: Text(
+                    'Save Nominee',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
