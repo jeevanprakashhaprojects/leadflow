@@ -68,7 +68,14 @@ const List<LeadOwner> kLeadOwners = [
 
 class SectionLeadDetailsWidget extends StatefulWidget {
   final void Function(int filledCount)? onCompulsoryChanged;
-  const SectionLeadDetailsWidget({super.key, this.onCompulsoryChanged});
+  final void Function(Map<String, dynamic>)? onDataChanged;
+  final Map<String, dynamic>? prefillData;
+  const SectionLeadDetailsWidget({
+    super.key,
+    this.onCompulsoryChanged,
+    this.onDataChanged,
+    this.prefillData,
+  });
 
   @override
   State<SectionLeadDetailsWidget> createState() =>

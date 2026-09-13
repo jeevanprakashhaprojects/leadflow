@@ -188,7 +188,7 @@ class _LeadCardWidgetState extends State<LeadCardWidget>
                       ],
                     ),
                     const SizedBox(height: 10),
-                    // Name + company
+                    // Name + phone number (instead of company)
                     Text(
                       lead.name,
                       style: GoogleFonts.plusJakartaSans(
@@ -201,14 +201,14 @@ class _LeadCardWidgetState extends State<LeadCardWidget>
                     Row(
                       children: [
                         Icon(
-                          Icons.business_rounded,
+                          Icons.phone_rounded,
                           size: 12,
                           color: AppTheme.textMuted,
                         ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
-                            lead.company,
+                            lead.phone.isNotEmpty ? lead.phone : 'No phone',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
                               color: AppTheme.textSecondary,
@@ -227,11 +227,14 @@ class _LeadCardWidgetState extends State<LeadCardWidget>
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          lead.industry,
+                          lead.industry.isNotEmpty
+                              ? lead.industry
+                              : lead.company,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 12,
                             color: AppTheme.textMuted,
                           ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),

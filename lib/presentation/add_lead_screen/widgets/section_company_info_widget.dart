@@ -4,7 +4,14 @@ import '../../../theme/app_theme.dart';
 
 class SectionCompanyInfoWidget extends StatefulWidget {
   final void Function(int filledCount)? onCompulsoryChanged;
-  const SectionCompanyInfoWidget({super.key, this.onCompulsoryChanged});
+  final void Function(Map<String, dynamic>)? onDataChanged;
+  final Map<String, dynamic>? prefillData;
+  const SectionCompanyInfoWidget({
+    super.key,
+    this.onCompulsoryChanged,
+    this.onDataChanged,
+    this.prefillData,
+  });
 
   @override
   State<SectionCompanyInfoWidget> createState() =>

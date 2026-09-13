@@ -373,7 +373,14 @@ class _SectionLabel extends StatelessWidget {
 
 class SectionContactInfoWidget extends StatefulWidget {
   final void Function(int filledCount)? onCompulsoryChanged;
-  const SectionContactInfoWidget({super.key, this.onCompulsoryChanged});
+  final void Function(Map<String, dynamic>)? onDataChanged;
+  final Map<String, dynamic>? prefillData;
+  const SectionContactInfoWidget({
+    super.key,
+    this.onCompulsoryChanged,
+    this.onDataChanged,
+    this.prefillData,
+  });
 
   @override
   State<SectionContactInfoWidget> createState() =>
@@ -408,14 +415,38 @@ class _SectionContactInfoWidgetState extends State<SectionContactInfoWidget> {
       filled++;
     }
     widget.onCompulsoryChanged?.call(filled);
+    // Notify data changes
+    widget.onDataChanged?.call({
+      'firstName': _firstNameCtrl.text.trim(),
+      'lastName': _lastNameCtrl.text.trim(),
+      'primaryMobile': _mobileCtrl.text.trim(),
+      'primaryEmail': _emailCtrl.text.trim(),
+      'name': '${_firstNameCtrl.text.trim()} ${_lastNameCtrl.text.trim()}'
+          .trim(),
+      'phone': _mobileCtrl.text.trim(),
+      'email': _emailCtrl.text.trim(),
+    });
   }
 
   @override
   void initState() {
     super.initState();
+    // Pre-fill if editing
+    if (widget.prefillData != null) {
+      final d = widget.prefillData!;
+      _firstNameCtrl.text =
+          d['firstName'] as String? ??
+          (d['name'] as String? ?? '').split(' ').first;
+      _lastNameCtrl.text = d['lastName'] as String? ?? '';
+      _mobileCtrl.text =
+          d['primaryMobile'] as String? ?? d['phone'] as String? ?? '';
+      _emailCtrl.text =
+          d['primaryEmail'] as String? ?? d['email'] as String? ?? '';
+    }
     _firstNameCtrl.addListener(_notifyParent);
     _mobileCtrl.addListener(_notifyParent);
     _emailCtrl.addListener(_notifyParent);
+    _lastNameCtrl.addListener(_notifyParent);
   }
 
   @override

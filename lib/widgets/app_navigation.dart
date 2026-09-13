@@ -26,27 +26,27 @@ class AppNavigation extends StatefulWidget {
 class _AppNavigationState extends State<AppNavigation> {
   static const List<_TabSpec> _tabs = [
     _TabSpec(
-      label: 'Leads',
-      icon: Icons.people_outline_rounded,
-      selectedIcon: Icons.people_rounded,
+      label: 'Dashboard',
+      icon: Icons.dashboard_outlined,
+      selectedIcon: Icons.dashboard_rounded,
       branchIndex: 0,
     ),
     _TabSpec(
-      label: 'Add Lead',
-      icon: Icons.add_circle_outline_rounded,
-      selectedIcon: Icons.add_circle_rounded,
+      label: 'Leads',
+      icon: Icons.people_outline_rounded,
+      selectedIcon: Icons.people_rounded,
       branchIndex: 1,
     ),
     _TabSpec(
-      label: 'Analytics',
-      icon: Icons.bar_chart_outlined,
-      selectedIcon: Icons.bar_chart_rounded,
+      label: 'Interests',
+      icon: Icons.star_outline_rounded,
+      selectedIcon: Icons.star_rounded,
       branchIndex: 2,
     ),
     _TabSpec(
-      label: 'Profile',
-      icon: Icons.person_outline_rounded,
-      selectedIcon: Icons.person_rounded,
+      label: 'Logs',
+      icon: Icons.bar_chart_outlined,
+      selectedIcon: Icons.bar_chart_rounded,
       branchIndex: 3,
     ),
   ];
@@ -64,21 +64,28 @@ class _AppNavigationState extends State<AppNavigation> {
     final theme = Theme.of(context);
     final currentIndex = widget.navigationShell.currentIndex;
 
-    return NavigationBar(
-      selectedIndex: currentIndex,
-      onDestinationSelected: _onTabTap,
-      backgroundColor: theme.colorScheme.surface,
-      indicatorColor: AppTheme.primaryContainer,
-      elevation: 0,
-      shadowColor: Colors.transparent,
-      surfaceTintColor: Colors.transparent,
-      destinations: _tabs.map((tab) {
-        return NavigationDestination(
-          icon: Icon(tab.icon),
-          selectedIcon: Icon(tab.selectedIcon),
-          label: tab.label,
-        );
-      }).toList(),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Divider(height: 1, color: AppTheme.surface200),
+        NavigationBar(
+          selectedIndex: currentIndex,
+          onDestinationSelected: _onTabTap,
+          backgroundColor: theme.colorScheme.surface,
+          indicatorColor: AppTheme.primaryContainer,
+          elevation: 0,
+          shadowColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          destinations: _tabs.map((tab) {
+            return NavigationDestination(
+              icon: Icon(tab.icon),
+              selectedIcon: Icon(tab.selectedIcon, color: AppTheme.primary),
+              label: tab.label,
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 }

@@ -3,7 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../theme/app_theme.dart';
 
 class SectionNotesWidget extends StatefulWidget {
-  const SectionNotesWidget({super.key});
+  final Map<String, dynamic>? prefillData;
+  const SectionNotesWidget({super.key, this.prefillData});
 
   @override
   State<SectionNotesWidget> createState() => _SectionNotesWidgetState();
@@ -18,12 +19,19 @@ class _SectionNotesWidgetState extends State<SectionNotesWidget>
   bool _isRecording = false;
   static const int _maxChars = 500;
 
+  // Voice recordings stored separately from notes
+  final List<Map<String, dynamic>> _voiceRecordings = [];
+
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
+    // Pre-fill notes if editing
+    if (widget.prefillData != null) {
+      _notesCtrl.text = widget.prefillData!['notes'] as String? ?? '';
+    }
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -46,7 +54,6 @@ class _SectionNotesWidgetState extends State<SectionNotesWidget>
     setState(() => _isRecording = !_isRecording);
     if (_isRecording) {
       _pulseController.repeat(reverse: true);
-      // Simulate voice recording — in production integrate speech_to_text package
       Future.delayed(const Duration(seconds: 5), () {
         if (mounted && _isRecording) {
           _stopRecording();
@@ -60,16 +67,15 @@ class _SectionNotesWidgetState extends State<SectionNotesWidget>
   void _stopRecording() {
     _pulseController.stop();
     _pulseController.reset();
-    setState(() => _isRecording = false);
-    // Append placeholder transcription text
-    final existing = _notesCtrl.text;
-    final appended = existing.isEmpty
-        ? '[Voice note recorded]'
-        : '$existing [Voice note recorded]';
-    _notesCtrl.text = appended;
-    _notesCtrl.selection = TextSelection.fromPosition(
-      TextPosition(offset: _notesCtrl.text.length),
-    );
+    setState(() {
+      _isRecording = false;
+      // Save as voice recording entry, NOT appended to notes text
+      _voiceRecordings.insert(0, {
+        'label': 'Voice Recording ${_voiceRecordings.length + 1}',
+        'duration': '0:05',
+        'time': 'Just now',
+      });
+    });
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -77,7 +83,7 @@ class _SectionNotesWidgetState extends State<SectionNotesWidget>
             const Icon(Icons.mic_rounded, color: Colors.white, size: 16),
             const SizedBox(width: 8),
             Text(
-              'Voice note saved to notes',
+              'Voice recording saved',
               style: GoogleFonts.plusJakartaSans(fontSize: 13),
             ),
           ],
@@ -106,8 +112,7 @@ class _SectionNotesWidgetState extends State<SectionNotesWidget>
           decoration: InputDecoration(
             labelText: 'Notes',
             alignLabelWithHint: true,
-            hintText:
-                'Add notes about this lead... Use @name to mention a colleague',
+            hintText: 'Add notes about this lead...',
             counterText: '${_notesCtrl.text.length}/$_maxChars',
             counterStyle: GoogleFonts.plusJakartaSans(
               fontSize: 11,
@@ -119,66 +124,125 @@ class _SectionNotesWidgetState extends State<SectionNotesWidget>
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: 12),
-        // Voice input button only (AI assist removed)
-        Row(
-          children: [
-            AnimatedBuilder(
-              animation: _pulseAnimation,
-              builder: (context, child) => Transform.scale(
-                scale: _isRecording ? _pulseAnimation.value : 1.0,
-                child: child,
-              ),
-              child: InkWell(
-                onTap: _toggleVoiceRecording,
+        // Voice input button
+        AnimatedBuilder(
+          animation: _pulseAnimation,
+          builder: (context, child) => Transform.scale(
+            scale: _isRecording ? _pulseAnimation.value : 1.0,
+            child: child,
+          ),
+          child: InkWell(
+            onTap: _toggleVoiceRecording,
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: _isRecording
+                    ? AppTheme.error.withAlpha(26)
+                    : AppTheme.primary.withAlpha(26),
                 borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _isRecording
-                        ? AppTheme.error.withAlpha(26)
-                        : AppTheme.primary.withAlpha(26),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: _isRecording
-                          ? AppTheme.error.withAlpha(128)
-                          : AppTheme.primary.withAlpha(77),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        _isRecording
-                            ? Icons.stop_circle_rounded
-                            : Icons.mic_rounded,
-                        size: 16,
-                        color: _isRecording ? AppTheme.error : AppTheme.primary,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        _isRecording ? 'Stop Recording' : 'Voice Input',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: _isRecording
-                              ? AppTheme.error
-                              : AppTheme.primary,
-                        ),
-                      ),
-                      if (_isRecording) ...[
-                        const SizedBox(width: 6),
-                        _RecordingDot(),
-                      ],
-                    ],
-                  ),
+                border: Border.all(
+                  color: _isRecording
+                      ? AppTheme.error.withAlpha(128)
+                      : AppTheme.primary.withAlpha(77),
                 ),
               ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    _isRecording
+                        ? Icons.stop_circle_rounded
+                        : Icons.mic_rounded,
+                    size: 16,
+                    color: _isRecording ? AppTheme.error : AppTheme.primary,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    _isRecording ? 'Stop Recording' : 'Voice Input',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: _isRecording ? AppTheme.error : AppTheme.primary,
+                    ),
+                  ),
+                  if (_isRecording) ...[
+                    const SizedBox(width: 6),
+                    _RecordingDot(),
+                  ],
+                ],
+              ),
             ),
-          ],
+          ),
         ),
+        // Voice recordings list (separate from notes)
+        if (_voiceRecordings.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          Text(
+            'Voice Recordings',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ..._voiceRecordings.map(
+            (r) => Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.primary.withAlpha(10),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppTheme.primary.withAlpha(40)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withAlpha(30),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.mic_rounded,
+                      size: 16,
+                      color: AppTheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          r['label'] as String,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          '${r['duration']} · ${r['time']}',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            color: AppTheme.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.play_circle_rounded,
+                    color: AppTheme.primary,
+                    size: 24,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
         const SizedBox(height: 16),
         // Agent remarks (private)
         GestureDetector(
@@ -225,37 +289,15 @@ class _SectionNotesWidgetState extends State<SectionNotesWidget>
           child: _showAgentRemarks
               ? Padding(
                   padding: const EdgeInsets.only(top: 12),
-                  child: Column(
-                    children: [
-                      TextFormField(
-                        controller: _remarksCtrl,
-                        maxLines: 4,
-                        textCapitalization: TextCapitalization.sentences,
-                        decoration: const InputDecoration(
-                          labelText: 'Private Remarks',
-                          alignLabelWithHint: true,
-                          hintText: 'Internal notes — not visible to lead',
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _planCtrl,
-                        maxLines: 3,
-                        textCapitalization: TextCapitalization.sentences,
-                        decoration: const InputDecoration(
-                          labelText: 'Plan Suggested',
-                          alignLabelWithHint: true,
-                          prefixIcon: Padding(
-                            padding: EdgeInsets.only(bottom: 40),
-                            child: Icon(
-                              Icons.lightbulb_outline_rounded,
-                              size: 18,
-                              color: AppTheme.warning,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                  child: TextFormField(
+                    controller: _remarksCtrl,
+                    maxLines: 4,
+                    textCapitalization: TextCapitalization.sentences,
+                    decoration: const InputDecoration(
+                      labelText: 'Private Remarks',
+                      alignLabelWithHint: true,
+                      hintText: 'Internal notes — not visible to lead',
+                    ),
                   ),
                 )
               : const SizedBox.shrink(),
@@ -265,7 +307,6 @@ class _SectionNotesWidgetState extends State<SectionNotesWidget>
   }
 }
 
-/// Animated red dot shown while recording
 class _RecordingDot extends StatefulWidget {
   @override
   State<_RecordingDot> createState() => _RecordingDotState();

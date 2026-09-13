@@ -10,169 +10,8 @@ import './widgets/lead_card_widget.dart';
 import './widgets/lead_filter_bar_widget.dart';
 import './widgets/pipeline_kpi_widget.dart';
 
-// Global leads list so new leads added from AddLeadScreen appear immediately
-final List<Map<String, dynamic>> globalLeadMaps = [
-  {
-    'id': '1',
-    'name': 'Priya Sharma',
-    'company': 'Infosys Ltd.',
-    'status': 'Qualified',
-    'priority': 'High',
-    'score': 82,
-    'dealValue': 2500000.0,
-    'ownerInitials': 'RS',
-    'ownerName': 'Rahul Singh',
-    'lastContact': '2h ago',
-    'phone': '+91 98765 43210',
-    'email': 'priya.sharma@infosys.com',
-    'industry': 'Technology',
-    'tags': ['VIP', 'Follow-up'],
-  },
-  {
-    'id': '2',
-    'name': 'Mohammed Al-Rashid',
-    'company': 'Tata Consultancy',
-    'status': 'Proposal',
-    'priority': 'High',
-    'score': 91,
-    'dealValue': 7500000.0,
-    'ownerInitials': 'AP',
-    'ownerName': 'Ananya Patel',
-    'lastContact': '1d ago',
-    'phone': '+91 87654 32109',
-    'email': 'm.alrashid@tcs.com',
-    'industry': 'IT Services',
-    'tags': ['VIP', 'Urgent'],
-  },
-  {
-    'id': '3',
-    'name': 'Sunita Reddy',
-    'company': 'Wipro Technologies',
-    'status': 'Contacted',
-    'priority': 'Medium',
-    'score': 55,
-    'dealValue': 1200000.0,
-    'ownerInitials': 'KM',
-    'ownerName': 'Kavya Menon',
-    'lastContact': '3d ago',
-    'phone': '+91 76543 21098',
-    'email': 'sunita.r@wipro.com',
-    'industry': 'Technology',
-    'tags': ['Follow-up'],
-  },
-  {
-    'id': '4',
-    'name': 'Arjun Mehta',
-    'company': 'HCL Technologies',
-    'status': 'New',
-    'priority': 'Low',
-    'score': 32,
-    'dealValue': 500000.0,
-    'ownerInitials': 'RS',
-    'ownerName': 'Rahul Singh',
-    'lastContact': '5d ago',
-    'phone': '+91 65432 10987',
-    'email': 'arjun.m@hcl.com',
-    'industry': 'Technology',
-    'tags': [],
-  },
-  {
-    'id': '5',
-    'name': 'Fatima Nair',
-    'company': 'Reliance Industries',
-    'status': 'Negotiation',
-    'priority': 'High',
-    'score': 78,
-    'dealValue': 15000000.0,
-    'ownerInitials': 'AP',
-    'ownerName': 'Ananya Patel',
-    'lastContact': '6h ago',
-    'phone': '+91 54321 09876',
-    'email': 'f.nair@ril.com',
-    'industry': 'Conglomerate',
-    'tags': ['VIP', 'Urgent'],
-  },
-  {
-    'id': '6',
-    'name': 'Vikram Joshi',
-    'company': 'HDFC Bank',
-    'status': 'Won',
-    'priority': 'Medium',
-    'score': 95,
-    'dealValue': 3200000.0,
-    'ownerInitials': 'KM',
-    'ownerName': 'Kavya Menon',
-    'lastContact': '2d ago',
-    'phone': '+91 43210 98765',
-    'email': 'vikram.j@hdfc.com',
-    'industry': 'Banking',
-    'tags': ['VIP'],
-  },
-  {
-    'id': '7',
-    'name': 'Lakshmi Iyer',
-    'company': 'Bajaj Finance',
-    'status': 'Lost',
-    'priority': 'Low',
-    'score': 18,
-    'dealValue': 800000.0,
-    'ownerInitials': 'RS',
-    'ownerName': 'Rahul Singh',
-    'lastContact': '7d ago',
-    'phone': '+91 32109 87654',
-    'email': 'lakshmi.i@bajaj.com',
-    'industry': 'Finance',
-    'tags': [],
-  },
-  {
-    'id': '8',
-    'name': 'Rohan Kapoor',
-    'company': 'Mahindra Group',
-    'status': 'Qualified',
-    'priority': 'Medium',
-    'score': 67,
-    'dealValue': 4500000.0,
-    'ownerInitials': 'AP',
-    'ownerName': 'Ananya Patel',
-    'lastContact': '4h ago',
-    'phone': '+91 21098 76543',
-    'email': 'rohan.k@mahindra.com',
-    'industry': 'Automotive',
-    'tags': ['Follow-up'],
-  },
-  {
-    'id': '9',
-    'name': 'Deepika Verma',
-    'company': 'Zomato Ltd.',
-    'status': 'Contacted',
-    'priority': 'Medium',
-    'score': 44,
-    'dealValue': 650000.0,
-    'ownerInitials': 'KM',
-    'ownerName': 'Kavya Menon',
-    'lastContact': '2d ago',
-    'phone': '+91 10987 65432',
-    'email': 'd.verma@zomato.com',
-    'industry': 'Food Tech',
-    'tags': [],
-  },
-  {
-    'id': '10',
-    'name': 'Sameer Khan',
-    'company': 'Paytm',
-    'status': 'New',
-    'priority': 'Low',
-    'score': 22,
-    'dealValue': 300000.0,
-    'ownerInitials': 'RS',
-    'ownerName': 'Rahul Singh',
-    'lastContact': '1w ago',
-    'phone': '+91 09876 54321',
-    'email': 's.khan@paytm.com',
-    'industry': 'Fintech',
-    'tags': [],
-  },
-];
+// Global leads list — starts empty, populated when leads are added
+final List<Map<String, dynamic>> globalLeadMaps = [];
 
 // TODO: Replace with [Riverpod/Bloc] for production
 class LeadsListScreen extends StatefulWidget {
@@ -198,6 +37,8 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
   String _selectedFilter = 'All';
   bool _isSearchActive = false;
   _SortOption _sortOption = _SortOption.dateNewest;
+  // null = no filter, true = existing customer only, false = new customer only
+  bool? _existingCustomerFilter;
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
   List<LeadModel> _leads = [];
@@ -209,7 +50,7 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
   }
 
   Future<void> _loadLeads() async {
-    await Future.delayed(const Duration(milliseconds: 800));
+    await Future.delayed(const Duration(milliseconds: 400));
     if (mounted) {
       setState(() {
         _leads = globalLeadMaps.map(LeadModel.fromMap).toList();
@@ -220,7 +61,7 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
 
   Future<void> _refresh() async {
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 600));
+    await Future.delayed(const Duration(milliseconds: 400));
     if (mounted) {
       setState(() {
         _leads = globalLeadMaps.map(LeadModel.fromMap).toList();
@@ -243,8 +84,16 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
       final matchesSearch =
           _searchQuery.isEmpty ||
           lead.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          lead.phone.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           lead.company.toLowerCase().contains(_searchQuery.toLowerCase());
-      return matchesFilter && matchesSearch;
+      // Existing customer filter: Won/Result = existing customer
+      final isExistingCustomer =
+          lead.status == 'Won' || lead.status == 'Result';
+      final matchesExistingFilter =
+          _existingCustomerFilter == null ||
+          (_existingCustomerFilter == true && isExistingCustomer) ||
+          (_existingCustomerFilter == false && !isExistingCustomer);
+      return matchesFilter && matchesSearch && matchesExistingFilter;
     }).toList();
 
     // Apply sort
@@ -269,7 +118,6 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
         break;
       case _SortOption.dateNewest:
       case _SortOption.dateOldest:
-        // Keep original order (newest first by default, reverse for oldest)
         if (_sortOption == _SortOption.dateOldest) {
           result = result.reversed.toList();
         }
@@ -287,95 +135,176 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setSheet) => Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: AppTheme.surface200,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              Text(
-                'Sort Leads',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 12),
-              ...[
-                (
-                  _SortOption.dateNewest,
-                  Icons.calendar_today_rounded,
-                  'Newest First',
-                ),
-                (
-                  _SortOption.dateOldest,
-                  Icons.calendar_today_outlined,
-                  'Oldest First',
-                ),
-                (_SortOption.nameAZ, Icons.sort_by_alpha_rounded, 'Name A → Z'),
-                (_SortOption.nameZA, Icons.sort_by_alpha_rounded, 'Name Z → A'),
-                (
-                  _SortOption.dealValueHigh,
-                  Icons.trending_up_rounded,
-                  'Deal Value: High → Low',
-                ),
-                (
-                  _SortOption.dealValueLow,
-                  Icons.trending_down_rounded,
-                  'Deal Value: Low → High',
-                ),
-                (
-                  _SortOption.priorityHigh,
-                  Icons.priority_high_rounded,
-                  'Priority: High First',
-                ),
-              ].map((item) {
-                final (opt, icon, label) = item;
-                final isSelected = _sortOption == opt;
-                return ListTile(
-                  dense: true,
-                  leading: Icon(
-                    icon,
-                    size: 20,
-                    color: isSelected
-                        ? AppTheme.primary
-                        : AppTheme.textSecondary,
-                  ),
-                  title: Text(
-                    label,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 14,
-                      fontWeight: isSelected
-                          ? FontWeight.w600
-                          : FontWeight.w400,
-                      color: isSelected
-                          ? AppTheme.primary
-                          : AppTheme.textPrimary,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surface200,
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                  trailing: isSelected
-                      ? const Icon(
-                          Icons.check_rounded,
-                          color: AppTheme.primary,
-                          size: 18,
-                        )
-                      : null,
-                  onTap: () {
-                    setState(() => _sortOption = opt);
-                    Navigator.pop(ctx);
-                  },
-                );
-              }),
-            ],
+                ),
+                Text(
+                  'Sort & Filter',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Sort options
+                Text(
+                  'Sort By',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                ...[
+                  (
+                    _SortOption.dateNewest,
+                    Icons.calendar_today_rounded,
+                    'Newest First',
+                  ),
+                  (
+                    _SortOption.dateOldest,
+                    Icons.calendar_today_outlined,
+                    'Oldest First',
+                  ),
+                  (
+                    _SortOption.nameAZ,
+                    Icons.sort_by_alpha_rounded,
+                    'Name A → Z',
+                  ),
+                  (
+                    _SortOption.nameZA,
+                    Icons.sort_by_alpha_rounded,
+                    'Name Z → A',
+                  ),
+                  (
+                    _SortOption.dealValueHigh,
+                    Icons.trending_up_rounded,
+                    'Deal Value: High → Low',
+                  ),
+                  (
+                    _SortOption.dealValueLow,
+                    Icons.trending_down_rounded,
+                    'Deal Value: Low → High',
+                  ),
+                  (
+                    _SortOption.priorityHigh,
+                    Icons.priority_high_rounded,
+                    'Priority: High First',
+                  ),
+                ].map((item) {
+                  final (opt, icon, label) = item;
+                  final isSelected = _sortOption == opt;
+                  return ListTile(
+                    dense: true,
+                    leading: Icon(
+                      icon,
+                      size: 20,
+                      color: isSelected
+                          ? AppTheme.primary
+                          : AppTheme.textSecondary,
+                    ),
+                    title: Text(
+                      label,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 14,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                        color: isSelected
+                            ? AppTheme.primary
+                            : AppTheme.textPrimary,
+                      ),
+                    ),
+                    trailing: isSelected
+                        ? const Icon(
+                            Icons.check_rounded,
+                            color: AppTheme.primary,
+                            size: 18,
+                          )
+                        : null,
+                    onTap: () {
+                      setState(() => _sortOption = opt);
+                      setSheet(() {});
+                    },
+                  );
+                }),
+                const Divider(height: 24),
+                // Existing customer filter
+                Text(
+                  'Existing Customer',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    _FilterChip(
+                      label: 'All',
+                      isSelected: _existingCustomerFilter == null,
+                      onTap: () {
+                        setState(() => _existingCustomerFilter = null);
+                        setSheet(() {});
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    _FilterChip(
+                      label: 'Yes (Won/Result)',
+                      isSelected: _existingCustomerFilter == true,
+                      onTap: () {
+                        setState(() => _existingCustomerFilter = true);
+                        setSheet(() {});
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    _FilterChip(
+                      label: 'No',
+                      isSelected: _existingCustomerFilter == false,
+                      onTap: () {
+                        setState(() => _existingCustomerFilter = false);
+                        setSheet(() {});
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppTheme.primary,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      'Apply',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -415,7 +344,7 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
                       controller: _searchController,
                       autofocus: true,
                       decoration: InputDecoration(
-                        hintText: 'Search leads, companies...',
+                        hintText: 'Search leads, phone...',
                         hintStyle: GoogleFonts.plusJakartaSans(
                           fontSize: 14,
                           color: AppTheme.textMuted,
@@ -456,7 +385,6 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
                       }
                     });
                   },
-                  tooltip: 'Search leads',
                 ),
                 IconButton(
                   icon: Stack(
@@ -480,7 +408,6 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
                     ],
                   ),
                   onPressed: () => context.go(AppRoutes.notificationsScreen),
-                  tooltip: 'Notifications',
                 ),
                 Padding(
                   padding: const EdgeInsets.only(right: 12),
@@ -534,13 +461,36 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
                         color: AppTheme.textSecondary,
                       ),
                     ),
+                    if (_existingCustomerFilter != null) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          'Existing: ${_existingCustomerFilter! ? 'Yes' : 'No'}',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            color: AppTheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
                     const Spacer(),
                     TextButton.icon(
                       onPressed: _showSortSheet,
                       icon: const Icon(Icons.sort_rounded, size: 16),
                       label: Text(_sortLabel),
                       style: TextButton.styleFrom(
-                        foregroundColor: _sortOption == _SortOption.dateNewest
+                        foregroundColor:
+                            _sortOption == _SortOption.dateNewest &&
+                                _existingCustomerFilter == null
                             ? AppTheme.textSecondary
                             : AppTheme.primary,
                         textStyle: GoogleFonts.plusJakartaSans(
@@ -662,6 +612,42 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
   }
 }
 
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+  const _FilterChip({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.primaryContainer : AppTheme.surface100,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? AppTheme.primary : AppTheme.surface200,
+          ),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+            color: isSelected ? AppTheme.primary : AppTheme.textSecondary,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _FilterBarDelegate extends SliverPersistentHeaderDelegate {
   final Widget child;
   const _FilterBarDelegate({required this.child});
@@ -701,6 +687,17 @@ class LeadModel {
   final String email;
   final String industry;
   final List<String> tags;
+  // Additional fields for full data display
+  final String? firstName;
+  final String? lastName;
+  final String? whatsapp;
+  final String? address;
+  final String? city;
+  final String? state;
+  final String? country;
+  final String? source;
+  final String? campaign;
+  final String? notes;
 
   const LeadModel({
     required this.id,
@@ -717,23 +714,43 @@ class LeadModel {
     required this.email,
     required this.industry,
     required this.tags,
+    this.firstName,
+    this.lastName,
+    this.whatsapp,
+    this.address,
+    this.city,
+    this.state,
+    this.country,
+    this.source,
+    this.campaign,
+    this.notes,
   });
 
   factory LeadModel.fromMap(Map<String, dynamic> map) => LeadModel(
-    id: map['id'] as String,
-    name: map['name'] as String,
-    company: map['company'] as String,
-    status: map['status'] as String,
-    priority: map['priority'] as String,
-    score: map['score'] as int,
-    dealValue: (map['dealValue'] as num).toDouble(),
-    ownerInitials: map['ownerInitials'] as String,
-    ownerName: map['ownerName'] as String,
-    lastContact: map['lastContact'] as String,
-    phone: map['phone'] as String,
-    email: map['email'] as String,
-    industry: map['industry'] as String,
-    tags: List<String>.from(map['tags'] as List),
+    id: map['id'] as String? ?? '',
+    name: map['name'] as String? ?? '',
+    company: map['company'] as String? ?? '',
+    status: map['status'] as String? ?? 'New',
+    priority: map['priority'] as String? ?? 'Medium',
+    score: (map['score'] as num?)?.toInt() ?? 0,
+    dealValue: (map['dealValue'] as num?)?.toDouble() ?? 0.0,
+    ownerInitials: map['ownerInitials'] as String? ?? 'PS',
+    ownerName: map['ownerName'] as String? ?? 'Priya Sharma',
+    lastContact: map['lastContact'] as String? ?? 'Just now',
+    phone: map['phone'] as String? ?? '',
+    email: map['email'] as String? ?? '',
+    industry: map['industry'] as String? ?? '',
+    tags: List<String>.from(map['tags'] as List? ?? []),
+    firstName: map['firstName'] as String?,
+    lastName: map['lastName'] as String?,
+    whatsapp: map['whatsapp'] as String?,
+    address: map['address'] as String?,
+    city: map['city'] as String?,
+    state: map['state'] as String?,
+    country: map['country'] as String?,
+    source: map['source'] as String?,
+    campaign: map['campaign'] as String?,
+    notes: map['notes'] as String?,
   );
 
   Map<String, dynamic> toMap() => {
@@ -751,5 +768,47 @@ class LeadModel {
     'email': email,
     'industry': industry,
     'tags': tags,
+    if (firstName != null) 'firstName': firstName,
+    if (lastName != null) 'lastName': lastName,
+    if (whatsapp != null) 'whatsapp': whatsapp,
+    if (address != null) 'address': address,
+    if (city != null) 'city': city,
+    if (state != null) 'state': state,
+    if (country != null) 'country': country,
+    if (source != null) 'source': source,
+    if (campaign != null) 'campaign': campaign,
+    if (notes != null) 'notes': notes,
   };
+
+  LeadModel copyWith({
+    String? id,
+    String? name,
+    String? company,
+    String? status,
+    String? priority,
+    int? score,
+    double? dealValue,
+    String? ownerInitials,
+    String? ownerName,
+    String? lastContact,
+    String? phone,
+    String? email,
+    String? industry,
+    List<String>? tags,
+  }) => LeadModel(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    company: company ?? this.company,
+    status: status ?? this.status,
+    priority: priority ?? this.priority,
+    score: score ?? this.score,
+    dealValue: dealValue ?? this.dealValue,
+    ownerInitials: ownerInitials ?? this.ownerInitials,
+    ownerName: ownerName ?? this.ownerName,
+    lastContact: lastContact ?? this.lastContact,
+    phone: phone ?? this.phone,
+    email: email ?? this.email,
+    industry: industry ?? this.industry,
+    tags: tags ?? this.tags,
+  );
 }

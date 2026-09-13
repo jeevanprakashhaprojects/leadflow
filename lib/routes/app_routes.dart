@@ -2,19 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../presentation/add_lead_screen/add_lead_screen.dart';
-import '../presentation/leads_list_screen/leads_list_screen.dart';
 import '../presentation/analytics_screen/analytics_screen.dart';
-import '../presentation/profile_screen/profile_screen.dart';
-import '../presentation/notifications_screen/notifications_screen.dart';
+import '../presentation/buy_product_screen/buy_product_screen.dart';
+import '../presentation/calls_permission_screen/calls_permission_screen.dart';
+import '../presentation/create_account_screen/create_account_screen.dart';
+import '../presentation/customers_screen/customers_screen.dart';
+import '../presentation/dashboard_screen/dashboard_screen.dart';
+import '../presentation/forgot_password_screen/forgot_password_screen.dart';
+import '../presentation/interest_detail_screen/interest_detail_screen.dart';
+import '../presentation/interests_screen/interests_screen.dart';
 import '../presentation/lead_detail_screen/lead_detail_screen.dart';
+import '../presentation/leads_list_screen/leads_list_screen.dart';
+import '../presentation/notifications_screen/notifications_screen.dart';
+import '../presentation/profile_screen/profile_screen.dart';
+import '../presentation/settings_screen/settings_screen.dart';
 import '../presentation/sign_up_login_screen/anbu_login_screen.dart';
+import '../presentation/sim_selection_screen/sim_selection_screen.dart';
 import '../presentation/splash_screen/splash_screen.dart';
 import '../presentation/welcome_screen/welcome_screen.dart';
-import '../presentation/forgot_password_screen/forgot_password_screen.dart';
-import '../presentation/buy_product_screen/buy_product_screen.dart';
-import '../presentation/create_account_screen/create_account_screen.dart';
-import '../presentation/calls_permission_screen/calls_permission_screen.dart';
-import '../presentation/sim_selection_screen/sim_selection_screen.dart';
 import '../widgets/app_scaffold.dart';
 
 class AppRoutes {
@@ -27,12 +32,19 @@ class AppRoutes {
   static const String createAccountScreen = '/create-account';
   static const String callsPermissionScreen = '/calls-permission';
   static const String simSelectionScreen = '/sim-selection';
+  // Shell branches
+  static const String dashboardScreen = '/dashboard-screen';
   static const String leadsListScreen = '/leads-list-screen';
-  static const String addLeadScreen = '/add-lead-screen';
+  static const String interestsScreen = '/interests-screen';
   static const String analyticsScreen = '/analytics-screen';
+  static const String customersScreen = '/customers-screen';
+  // Standalone (push)
+  static const String addLeadScreen = '/add-lead-screen';
   static const String profileScreen = '/profile-screen';
   static const String notificationsScreen = '/notifications-screen';
   static const String leadDetailScreen = '/lead-detail-screen';
+  static const String interestDetailScreen = '/interest-detail-screen';
+  static const String settingsScreen = '/settings-screen';
 }
 
 final GoRouter appRouter = GoRouter(
@@ -55,7 +67,6 @@ final GoRouter appRouter = GoRouter(
         transitionDuration: const Duration(milliseconds: 300),
       ),
     ),
-    // Welcome screen
     GoRoute(
       path: AppRoutes.welcomeScreen,
       pageBuilder: (context, state) => CustomTransitionPage(
@@ -72,7 +83,6 @@ final GoRouter appRouter = GoRouter(
         transitionDuration: const Duration(milliseconds: 350),
       ),
     ),
-    // Login screen
     GoRoute(
       path: AppRoutes.signUpLoginScreen,
       pageBuilder: (context, state) => CustomTransitionPage(
@@ -91,7 +101,6 @@ final GoRouter appRouter = GoRouter(
         transitionDuration: const Duration(milliseconds: 320),
       ),
     ),
-    // Forgot password
     GoRoute(
       path: AppRoutes.forgotPasswordScreen,
       pageBuilder: (context, state) => CustomTransitionPage(
@@ -110,7 +119,6 @@ final GoRouter appRouter = GoRouter(
         transitionDuration: const Duration(milliseconds: 320),
       ),
     ),
-    // Buy product onboarding
     GoRoute(
       path: AppRoutes.buyProductScreen,
       pageBuilder: (context, state) => CustomTransitionPage(
@@ -129,7 +137,6 @@ final GoRouter appRouter = GoRouter(
         transitionDuration: const Duration(milliseconds: 350),
       ),
     ),
-    // Create Account
     GoRoute(
       path: AppRoutes.createAccountScreen,
       pageBuilder: (context, state) => CustomTransitionPage(
@@ -148,7 +155,6 @@ final GoRouter appRouter = GoRouter(
         transitionDuration: const Duration(milliseconds: 320),
       ),
     ),
-    // Calls Permission
     GoRoute(
       path: AppRoutes.callsPermissionScreen,
       pageBuilder: (context, state) => CustomTransitionPage(
@@ -167,7 +173,6 @@ final GoRouter appRouter = GoRouter(
         transitionDuration: const Duration(milliseconds: 320),
       ),
     ),
-    // SIM Selection
     GoRoute(
       path: AppRoutes.simSelectionScreen,
       pageBuilder: (context, state) => CustomTransitionPage(
@@ -186,7 +191,36 @@ final GoRouter appRouter = GoRouter(
         transitionDuration: const Duration(milliseconds: 320),
       ),
     ),
-    // Notifications (standalone)
+    // Standalone push routes
+    GoRoute(
+      path: AppRoutes.addLeadScreen,
+      pageBuilder: (context, state) {
+        // Support editing existing lead via extra: {'editLead': leadMap}
+        final extra = state.extra;
+        Map<String, dynamic>? editLead;
+        if (extra is Map<String, dynamic> && extra.containsKey('editLead')) {
+          editLead = extra['editLead'] as Map<String, dynamic>?;
+        }
+        return CustomTransitionPage(
+          key: state.pageKey,
+          child: AddLeadScreen(editLead: editLead),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            final slide =
+                Tween<Offset>(
+                  begin: const Offset(0, 1.0),
+                  end: Offset.zero,
+                ).animate(
+                  CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeOutCubic,
+                  ),
+                );
+            return SlideTransition(position: slide, child: child);
+          },
+          transitionDuration: const Duration(milliseconds: 350),
+        );
+      },
+    ),
     GoRoute(
       path: AppRoutes.notificationsScreen,
       pageBuilder: (context, state) => CustomTransitionPage(
@@ -205,11 +239,13 @@ final GoRouter appRouter = GoRouter(
         transitionDuration: const Duration(milliseconds: 320),
       ),
     ),
-    // Lead Detail (standalone)
     GoRoute(
       path: AppRoutes.leadDetailScreen,
       pageBuilder: (context, state) {
-        final lead = state.extra as LeadModel;
+        final extra = state.extra;
+        final lead = extra is LeadModel
+            ? extra
+            : LeadModel.fromMap(extra as Map<String, dynamic>);
         return CustomTransitionPage(
           key: state.pageKey,
           child: LeadDetailScreen(lead: lead),
@@ -230,11 +266,98 @@ final GoRouter appRouter = GoRouter(
         );
       },
     ),
-    // Main app shell (post-login) — 4 tabs
+    GoRoute(
+      path: AppRoutes.interestDetailScreen,
+      pageBuilder: (context, state) {
+        final interest = state.extra as Map<String, dynamic>;
+        return CustomTransitionPage(
+          key: state.pageKey,
+          child: InterestDetailScreen(interest: interest),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            final slide =
+                Tween<Offset>(
+                  begin: const Offset(1.0, 0),
+                  end: Offset.zero,
+                ).animate(
+                  CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeOutCubic,
+                  ),
+                );
+            return SlideTransition(position: slide, child: child);
+          },
+          transitionDuration: const Duration(milliseconds: 320),
+        );
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.settingsScreen,
+      pageBuilder: (context, state) => CustomTransitionPage(
+        key: state.pageKey,
+        child: const SettingsScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final slide =
+              Tween<Offset>(
+                begin: const Offset(1.0, 0),
+                end: Offset.zero,
+              ).animate(
+                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+              );
+          return SlideTransition(position: slide, child: child);
+        },
+        transitionDuration: const Duration(milliseconds: 320),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.profileScreen,
+      pageBuilder: (context, state) => CustomTransitionPage(
+        key: state.pageKey,
+        child: const ProfileScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final slide =
+              Tween<Offset>(
+                begin: const Offset(1.0, 0),
+                end: Offset.zero,
+              ).animate(
+                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+              );
+          return SlideTransition(position: slide, child: child);
+        },
+        transitionDuration: const Duration(milliseconds: 320),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.customersScreen,
+      pageBuilder: (context, state) => CustomTransitionPage(
+        key: state.pageKey,
+        child: const CustomersScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final slide =
+              Tween<Offset>(
+                begin: const Offset(1.0, 0),
+                end: Offset.zero,
+              ).animate(
+                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+              );
+          return SlideTransition(position: slide, child: child);
+        },
+        transitionDuration: const Duration(milliseconds: 320),
+      ),
+    ),
+    // Main app shell — 4 tabs: Dashboard | Leads | Interests | Analytics
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) =>
           AppScaffold(navigationShell: navigationShell),
       branches: [
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: AppRoutes.dashboardScreen,
+              pageBuilder: (context, state) =>
+                  const NoTransitionPage(child: DashboardScreen()),
+            ),
+          ],
+        ),
         StatefulShellBranch(
           routes: [
             GoRoute(
@@ -247,9 +370,9 @@ final GoRouter appRouter = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: AppRoutes.addLeadScreen,
+              path: AppRoutes.interestsScreen,
               pageBuilder: (context, state) =>
-                  const NoTransitionPage(child: AddLeadScreen()),
+                  const NoTransitionPage(child: InterestsScreen()),
             ),
           ],
         ),
@@ -259,15 +382,6 @@ final GoRouter appRouter = GoRouter(
               path: AppRoutes.analyticsScreen,
               pageBuilder: (context, state) =>
                   const NoTransitionPage(child: AnalyticsScreen()),
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: AppRoutes.profileScreen,
-              pageBuilder: (context, state) =>
-                  const NoTransitionPage(child: ProfileScreen()),
             ),
           ],
         ),

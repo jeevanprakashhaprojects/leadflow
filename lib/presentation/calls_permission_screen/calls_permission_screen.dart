@@ -95,7 +95,7 @@ class _CallsPermissionScreenState extends State<CallsPermissionScreen>
         });
         await Future.delayed(const Duration(milliseconds: 600));
         if (mounted) {
-          context.go(AppRoutes.leadsListScreen);
+          context.go(AppRoutes.dashboardScreen);
         }
       }
       // If denied, stay on screen
@@ -118,7 +118,7 @@ class _CallsPermissionScreenState extends State<CallsPermissionScreen>
         onContinueWithLimited: () {
           Navigator.pop(context);
           // Skip SIM selection when limited — go directly to dashboard
-          context.go(AppRoutes.leadsListScreen);
+          context.go(AppRoutes.dashboardScreen);
         },
         onGrantPermission: () {
           Navigator.pop(context);

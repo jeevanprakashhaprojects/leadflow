@@ -8,7 +8,6 @@ import '../leads_list_screen/leads_list_screen.dart';
 import './widgets/section_address_widget.dart';
 import './widgets/section_company_info_widget.dart';
 import './widgets/section_contact_info_widget.dart';
-import './widgets/section_interests_widget.dart';
 import './widgets/section_lead_details_widget.dart';
 import './widgets/section_notes_widget.dart';
 import './widgets/section_relations_widget.dart';
@@ -19,7 +18,9 @@ import './widgets/wizard_progress_fab_widget.dart';
 import './widgets/wizard_step_indicator_widget.dart';
 
 class AddLeadScreen extends StatefulWidget {
-  const AddLeadScreen({super.key});
+  /// If provided, this lead will be pre-filled for editing
+  final Map<String, dynamic>? editLead;
+  const AddLeadScreen({super.key, this.editLead});
 
   @override
   State<AddLeadScreen> createState() => _AddLeadScreenState();
@@ -32,8 +33,11 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
   final _formKey = GlobalKey<FormState>();
   final _scrollController = ScrollController();
 
+  // Whether we are editing an existing lead
+  bool get _isEditing => widget.editLead != null;
+
   // Expandable section states
-  final List<bool> _sectionExpanded = List.filled(8, true);
+  final List<bool> _sectionExpanded = List.filled(7, true);
 
   static const List<WizardStep> _steps = [
     WizardStep('Contact Info', Icons.person_outline_rounded),
@@ -42,35 +46,35 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
     WizardStep('Address', Icons.location_on_outlined),
     WizardStep('Social', Icons.share_outlined),
     WizardStep('Notes', Icons.notes_rounded),
-    WizardStep('Interests', Icons.star_outline_rounded),
     WizardStep('Relations', Icons.group_outlined),
   ];
 
-  // Completion state per step — only true when compulsory fields are filled
-  final List<bool> _stepCompleted = List.filled(8, false);
+  // Completion state per step
+  final List<bool> _stepCompleted = List.filled(7, false);
 
   // Track field fill counts per section for progress calculation
-  // [filledFields, totalCompulsoryFields]
   final List<List<int>> _sectionProgress = [
-    [
-      0,
-      3,
-    ], // Contact Info: firstName + primaryMobile + primaryEmail (3 compulsory)
-    [0, 0], // Business Details: fully optional
-    [0, 1], // Lead Details: scheduledAction only (amount not compulsory)
-    [0, 0], // Address: fully optional
+    [0, 3], // Contact Info: firstName + primaryMobile + primaryEmail
+    [0, 0], // Business Details: optional
+    [0, 1], // Lead Details: scheduledAction only
+    [0, 0], // Address: optional
     [0, 0], // Social: optional
     [0, 0], // Notes: optional
-    [0, 0], // Interests: optional
     [0, 0], // Relations: optional
   ];
 
-  // Unique form key to force rebuild/clear on discard
+  // Collected form data across all steps
+  final Map<String, dynamic> _formData = {};
+
   Key _formInstanceKey = UniqueKey();
 
   @override
   void initState() {
     super.initState();
+    // Pre-fill form data if editing
+    if (_isEditing && widget.editLead != null) {
+      _formData.addAll(widget.editLead!);
+    }
     _scheduleAutoSave();
   }
 
@@ -80,6 +84,10 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
       _stepCompleted[sectionIndex] =
           filledCount >= _sectionProgress[sectionIndex][1];
     });
+  }
+
+  void _updateFormData(Map<String, dynamic> data) {
+    _formData.addAll(data);
   }
 
   double get _overallProgress {
@@ -103,12 +111,8 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
     }
   }
 
-  /// Step tap: only allow navigating to already-completed steps or current step.
-  /// Cannot skip ahead to a step that hasn't been reached yet.
   void _onStepTap(int index) {
-    // Can only go to current step or any previously completed/visited step
     if (index > _currentStep) {
-      // Check if all steps between current and target are completed
       for (int i = _currentStep; i < index; i++) {
         if (_sectionProgress[i][1] > 0 && !_stepCompleted[i]) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -152,7 +156,6 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
   }
 
   void _onContinue() {
-    // Check if current section's compulsory fields are filled
     if (_sectionProgress[_currentStep][1] > 0 &&
         _sectionProgress[_currentStep][0] < _sectionProgress[_currentStep][1]) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -210,11 +213,13 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
       builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
-          'Discard Lead?',
+          _isEditing ? 'Discard Changes?' : 'Discard Lead?',
           style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
         ),
         content: Text(
-          'All entered data will be cleared. Are you sure you want to discard?',
+          _isEditing
+              ? 'All changes will be lost. Are you sure?'
+              : 'All entered data will be cleared. Are you sure you want to discard?',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 14,
             color: AppTheme.textSecondary,
@@ -251,7 +256,6 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
   }
 
   void _clearAndExit() {
-    // Reset all state
     setState(() {
       _currentStep = 0;
       _formInstanceKey = UniqueKey();
@@ -265,82 +269,157 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
         _sectionExpanded[i] = true;
       }
     });
-
     context.go(AppRoutes.leadsListScreen);
   }
 
   Future<void> _onSubmit() async {
     setState(() => _isSaving = true);
-    await Future.delayed(const Duration(milliseconds: 1500));
+    await Future.delayed(const Duration(milliseconds: 800));
     if (mounted) {
       setState(() => _isSaving = false);
 
-      // Add new lead to global list so it appears immediately in leads list
-      final newId = DateTime.now().millisecondsSinceEpoch.toString();
-      globalLeadMaps.insert(0, {
-        'id': newId,
-        'name': 'New Lead',
-        'company': 'New Company',
-        'status': 'New',
-        'priority': 'Medium',
-        'score': 50,
-        'dealValue': 0.0,
-        'ownerInitials': 'PS',
-        'ownerName': 'Priya Sharma',
-        'lastContact': 'Just now',
-        'phone': '',
-        'email': '',
-        'industry': 'General',
-        'tags': [],
-      });
+      // Build the lead map from collected form data
+      final firstName = _formData['firstName'] as String? ?? '';
+      final lastName = _formData['lastName'] as String? ?? '';
+      final fullName = [
+        firstName,
+        lastName,
+      ].where((s) => s.isNotEmpty).join(' ');
+      final phone = _formData['primaryMobile'] as String? ?? '';
+      final email = _formData['primaryEmail'] as String? ?? '';
+      final company = _formData['companyName'] as String? ?? '';
+      final industry = _formData['industry'] as String? ?? '';
+      final dealValue = (_formData['dealValue'] as num?)?.toDouble() ?? 0.0;
+      final priority = _formData['priority'] as String? ?? 'Medium';
+      final status = _formData['status'] as String? ?? 'New';
+      final ownerName = _formData['ownerName'] as String? ?? 'Priya Sharma';
+      final ownerInitials = _formData['ownerInitials'] as String? ?? 'PS';
+      final notes = _formData['notes'] as String? ?? '';
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(
-                Icons.check_circle_rounded,
-                color: Colors.white,
-                size: 18,
-              ),
-              const SizedBox(width: 8),
-              const Text('Lead created successfully!'),
-            ],
+      if (_isEditing) {
+        // Update existing lead in global list
+        final existingId = widget.editLead!['id'] as String;
+        final idx = globalLeadMaps.indexWhere((m) => m['id'] == existingId);
+        if (idx >= 0) {
+          globalLeadMaps[idx] = {
+            ...globalLeadMaps[idx],
+            'name': fullName.isNotEmpty
+                ? fullName
+                : globalLeadMaps[idx]['name'],
+            'phone': phone.isNotEmpty ? phone : globalLeadMaps[idx]['phone'],
+            'email': email.isNotEmpty ? email : globalLeadMaps[idx]['email'],
+            'company': company.isNotEmpty
+                ? company
+                : globalLeadMaps[idx]['company'],
+            'industry': industry.isNotEmpty
+                ? industry
+                : globalLeadMaps[idx]['industry'],
+            'dealValue': dealValue > 0
+                ? dealValue
+                : globalLeadMaps[idx]['dealValue'],
+            'priority': priority,
+            'status': status,
+            'ownerName': ownerName,
+            'ownerInitials': ownerInitials,
+            'lastContact': 'Just now',
+            if (notes.isNotEmpty) 'notes': notes,
+            ..._formData,
+          };
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(
+                  Icons.check_circle_rounded,
+                  color: Colors.white,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                const Text('Lead updated successfully!'),
+              ],
+            ),
+            backgroundColor: AppTheme.success,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
-          backgroundColor: AppTheme.success,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+        );
+      } else {
+        // Create new lead
+        final newId = DateTime.now().millisecondsSinceEpoch.toString();
+        globalLeadMaps.insert(0, {
+          'id': newId,
+          'name': fullName.isNotEmpty ? fullName : 'New Lead',
+          'company': company.isNotEmpty ? company : '',
+          'status': status,
+          'priority': priority,
+          'score': 50,
+          'dealValue': dealValue,
+          'ownerInitials': ownerInitials,
+          'ownerName': ownerName,
+          'lastContact': 'Just now',
+          'phone': phone,
+          'email': email,
+          'industry': industry,
+          'tags': [],
+          if (notes.isNotEmpty) 'notes': notes,
+          ..._formData,
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(
+                  Icons.check_circle_rounded,
+                  color: Colors.white,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                const Text('Lead created successfully!'),
+              ],
+            ),
+            backgroundColor: AppTheme.success,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
-        ),
-      );
+        );
+      }
       _clearAndExit();
     }
   }
 
   Widget _buildSectionContent(int index) {
+    final prefill = _isEditing ? widget.editLead : null;
     switch (index) {
       case 0:
         return SectionContactInfoWidget(
+          prefillData: prefill,
           onCompulsoryChanged: (filled) => _updateSectionProgress(0, filled),
+          onDataChanged: _updateFormData,
         );
       case 1:
         return SectionCompanyInfoWidget(
+          prefillData: prefill,
           onCompulsoryChanged: (filled) => _updateSectionProgress(1, filled),
+          onDataChanged: _updateFormData,
         );
       case 2:
         return SectionLeadDetailsWidget(
+          prefillData: prefill,
           onCompulsoryChanged: (filled) => _updateSectionProgress(2, filled),
+          onDataChanged: _updateFormData,
         );
       case 3:
-        return const SectionAddressWidget();
+        return SectionAddressWidget(prefillData: prefill);
       case 4:
         return const SectionSocialWidget();
       case 5:
-        return const SectionNotesWidget();
+        return SectionNotesWidget(prefillData: prefill);
       case 6:
-        return const SectionInterestsWidget();
-      case 7:
         return const SectionRelationsWidget();
       default:
         return const SizedBox.shrink();
@@ -371,7 +450,7 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
           tooltip: 'Back',
         ),
         title: Text(
-          'Add New Lead',
+          _isEditing ? 'Edit Lead' : 'Add New Lead',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 17,
             fontWeight: FontWeight.w600,
@@ -408,14 +487,12 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
         key: _formKey,
         child: Column(
           children: [
-            // Step indicator (no flat progress bar)
             WizardStepIndicatorWidget(
               steps: _steps.map((s) => s.label).toList(),
               currentStep: _currentStep,
               completedSteps: _stepCompleted,
               onStepTap: _onStepTap,
             ),
-            // Section content
             Expanded(
               child: SingleChildScrollView(
                 controller: _scrollController,
@@ -480,7 +557,7 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
           tooltip: 'Back',
         ),
         title: Text(
-          'Add New Lead',
+          _isEditing ? 'Edit Lead' : 'Add New Lead',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -581,7 +658,6 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Section header
           InkWell(
             onTap: () => setState(
               () => _sectionExpanded[index] = !_sectionExpanded[index],
@@ -655,7 +731,6 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
               ),
             ),
           ),
-          // Section content
           AnimatedSize(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOutCubic,

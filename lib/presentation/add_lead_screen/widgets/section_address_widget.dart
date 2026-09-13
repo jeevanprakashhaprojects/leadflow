@@ -44,7 +44,8 @@ class _AddressData {
 // ─── Section Address Widget ───────────────────────────────────────────────────
 
 class SectionAddressWidget extends StatefulWidget {
-  const SectionAddressWidget({super.key});
+  final Map<String, dynamic>? prefillData;
+  const SectionAddressWidget({super.key, this.prefillData});
 
   @override
   State<SectionAddressWidget> createState() => _SectionAddressWidgetState();
@@ -258,28 +259,21 @@ class _SectionAddressWidgetState extends State<SectionAddressWidget> {
           _buildAddressForm(_currentAddress),
         ],
         if (_addressType == 'Current') _buildAddressForm(_currentAddress),
+        // Single "Open in Maps" button — only here, removed from _buildAddressForm
         const SizedBox(height: 16),
-        // Action buttons
-        Row(
-          children: [
-            OutlinedButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.map_outlined, size: 16),
-              label: const Text('Open in Maps'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppTheme.primary,
-                side: BorderSide(color: AppTheme.primary.withAlpha(128)),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                textStyle: GoogleFonts.plusJakartaSans(fontSize: 12),
-              ),
+        OutlinedButton.icon(
+          onPressed: () {},
+          icon: const Icon(Icons.map_outlined, size: 16),
+          label: const Text('Open in Maps'),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppTheme.primary,
+            side: BorderSide(color: AppTheme.primary.withAlpha(128)),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
             ),
-          ],
+            textStyle: GoogleFonts.plusJakartaSans(fontSize: 12),
+          ),
         ),
       ],
     );
@@ -445,20 +439,7 @@ class _SectionAddressWidgetState extends State<SectionAddressWidget> {
             ),
           ),
         ),
-        const SizedBox(height: 12),
-        // Open in Maps
-        OutlinedButton.icon(
-          onPressed: () {},
-          icon: const Icon(Icons.map_outlined, size: 16),
-          label: const Text('Open in Maps'),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: AppTheme.primary,
-            side: BorderSide(color: AppTheme.primary.withAlpha(100)),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        ),
+        // NOTE: "Open in Maps" button removed from here — it's only in the parent build method (single button)
       ],
     );
   }

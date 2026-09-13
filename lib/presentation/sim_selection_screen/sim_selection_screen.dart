@@ -125,7 +125,7 @@ class _SimSelectionScreenState extends State<SimSelectionScreen>
       });
       _successController.forward();
       await Future.delayed(const Duration(milliseconds: 1500));
-      if (mounted) context.go(AppRoutes.leadsListScreen);
+      if (mounted) context.go(AppRoutes.dashboardScreen);
     }
   }
 
