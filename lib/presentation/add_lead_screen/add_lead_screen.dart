@@ -36,7 +36,7 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
 
   static const List<WizardStep> _steps = [
     WizardStep('Contact Info', Icons.person_outline_rounded),
-    WizardStep('Company', Icons.business_outlined),
+    WizardStep('Business Details', Icons.business_outlined),
     WizardStep('Lead Details', Icons.trending_up_rounded),
     WizardStep('Address', Icons.location_on_outlined),
     WizardStep('Social', Icons.share_outlined),
@@ -51,22 +51,18 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
   // Track field fill counts per section for progress calculation
   // [filledFields, totalCompulsoryFields]
   final List<List<int>> _sectionProgress = [
-    [0, 2], // Contact Info: firstName + primaryEmail
-    [0, 1], // Company: companyName
-    [0, 2], // Lead Details: scheduledAction + dealValue
-    [0, 1], // Address: city
+    [
+      0,
+      3,
+    ], // Contact Info: firstName + primaryMobile + primaryEmail (3 compulsory)
+    [0, 0], // Business Details: fully optional
+    [0, 1], // Lead Details: scheduledAction only (amount not compulsory)
+    [0, 0], // Address: fully optional
     [0, 0], // Social: optional
     [0, 0], // Notes: optional
     [0, 0], // Interests: optional
     [0, 0], // Relations: optional
   ];
-
-  // Form field controllers for compulsory field tracking
-  final _firstNameCtrl = TextEditingController();
-  final _primaryEmailCtrl = TextEditingController();
-  final _companyNameCtrl = TextEditingController();
-  final _dealValueCtrl = TextEditingController();
-  String _scheduledAction = '';
 
   // Unique form key to force rebuild/clear on discard
   Key _formInstanceKey = UniqueKey();
@@ -75,35 +71,13 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
   void initState() {
     super.initState();
     _scheduleAutoSave();
-    // Listen to field changes to update progress
-    _firstNameCtrl.addListener(_updateProgress);
-    _primaryEmailCtrl.addListener(_updateProgress);
-    _companyNameCtrl.addListener(_updateProgress);
-    _dealValueCtrl.addListener(_updateProgress);
   }
 
-  void _updateProgress() {
+  void _updateSectionProgress(int sectionIndex, int filledCount) {
     setState(() {
-      // Contact Info
-      int contactFilled = 0;
-      if (_firstNameCtrl.text.isNotEmpty) contactFilled++;
-      if (_primaryEmailCtrl.text.isNotEmpty &&
-          _primaryEmailCtrl.text.contains('@'))
-        contactFilled++;
-      _sectionProgress[0] = [contactFilled, 2];
-      _stepCompleted[0] = contactFilled >= 2;
-
-      // Company
-      int companyFilled = _companyNameCtrl.text.isNotEmpty ? 1 : 0;
-      _sectionProgress[1] = [companyFilled, 1];
-      _stepCompleted[1] = companyFilled >= 1;
-
-      // Lead Details
-      int detailsFilled = 0;
-      if (_scheduledAction.isNotEmpty) detailsFilled++;
-      if (_dealValueCtrl.text.isNotEmpty) detailsFilled++;
-      _sectionProgress[2] = [detailsFilled, 2];
-      _stepCompleted[2] = detailsFilled >= 2;
+      _sectionProgress[sectionIndex][0] = filledCount;
+      _stepCompleted[sectionIndex] =
+          filledCount >= _sectionProgress[sectionIndex][1];
     });
   }
 
@@ -128,7 +102,43 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
     }
   }
 
+  /// Step tap: only allow navigating to already-completed steps or current step.
+  /// Cannot skip ahead to a step that hasn't been reached yet.
   void _onStepTap(int index) {
+    // Can only go to current step or any previously completed/visited step
+    if (index > _currentStep) {
+      // Check if all steps between current and target are completed
+      for (int i = _currentStep; i < index; i++) {
+        if (_sectionProgress[i][1] > 0 && !_stepCompleted[i]) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(
+                    Icons.info_outline_rounded,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Complete "${_steps[i].label}" first before jumping ahead.',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: AppTheme.warning,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
+          return;
+        }
+      }
+    }
     setState(() {
       _currentStep = index;
       _sectionExpanded[index] = true;
@@ -195,7 +205,8 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
   void _confirmDiscard() {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      barrierDismissible: true,
+      builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
           'Discard Lead?',
@@ -210,7 +221,7 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: Text(
               'Cancel',
               style: GoogleFonts.plusJakartaSans(color: AppTheme.textSecondary),
@@ -218,7 +229,7 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
           ),
           ElevatedButton(
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.of(dialogContext).pop();
               _clearAndExit();
             },
             style: ElevatedButton.styleFrom(
@@ -239,18 +250,10 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
   }
 
   void _clearAndExit() {
-    // Clear all tracked controllers
-    _firstNameCtrl.clear();
-    _primaryEmailCtrl.clear();
-    _companyNameCtrl.clear();
-    _dealValueCtrl.clear();
-    _scheduledAction = '';
-
     // Reset all state
     setState(() {
       _currentStep = 0;
-      _formInstanceKey =
-          UniqueKey(); // Forces all child widgets to rebuild fresh
+      _formInstanceKey = UniqueKey();
       for (int i = 0; i < _stepCompleted.length; i++) {
         _stepCompleted[i] = false;
       }
@@ -297,11 +300,17 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
   Widget _buildSectionContent(int index) {
     switch (index) {
       case 0:
-        return const SectionContactInfoWidget();
+        return SectionContactInfoWidget(
+          onCompulsoryChanged: (filled) => _updateSectionProgress(0, filled),
+        );
       case 1:
-        return const SectionCompanyInfoWidget();
+        return SectionCompanyInfoWidget(
+          onCompulsoryChanged: (filled) => _updateSectionProgress(1, filled),
+        );
       case 2:
-        return const SectionLeadDetailsWidget();
+        return SectionLeadDetailsWidget(
+          onCompulsoryChanged: (filled) => _updateSectionProgress(2, filled),
+        );
       case 3:
         return const SectionAddressWidget();
       case 4:
@@ -378,9 +387,7 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
         key: _formKey,
         child: Column(
           children: [
-            // Progress bar
-            _buildProgressBar(),
-            // Step indicator
+            // Step indicator (no flat progress bar)
             WizardStepIndicatorWidget(
               steps: _steps.map((s) => s.label).toList(),
               currentStep: _currentStep,
@@ -424,6 +431,7 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
         currentStep: _currentStep,
         totalSteps: _steps.length,
         completedSteps: _stepCompleted,
+        overallProgress: _overallProgress,
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: WizardBottomBarWidget(
@@ -499,7 +507,6 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
               key: _formKey,
               child: Column(
                 children: [
-                  _buildProgressBar(),
                   Expanded(
                     child: SingleChildScrollView(
                       controller: _scrollController,
@@ -526,51 +533,6 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
                   ),
                 ],
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProgressBar() {
-    final progress = _overallProgress;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: AppTheme.surfaceLight,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Form Progress',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 11,
-                  color: AppTheme.textSecondary,
-                ),
-              ),
-              Text(
-                '${(progress * 100).round()}%',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: progress >= 1.0 ? AppTheme.success : AppTheme.primary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: progress,
-              backgroundColor: AppTheme.surface200,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                progress >= 1.0 ? AppTheme.success : AppTheme.primary,
-              ),
-              minHeight: 4,
             ),
           ),
         ],
@@ -691,10 +653,6 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
-    _firstNameCtrl.dispose();
-    _primaryEmailCtrl.dispose();
-    _companyNameCtrl.dispose();
-    _dealValueCtrl.dispose();
     super.dispose();
   }
 }

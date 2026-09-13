@@ -21,7 +21,6 @@ class LeadFilterBarWidget extends StatelessWidget {
     'Negotiation',
     'Won',
     'Lost',
-    'Junk',
   ];
 
   @override

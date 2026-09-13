@@ -289,114 +289,173 @@ class _SectionAddressWidgetState extends State<SectionAddressWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Optional notice
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: AppTheme.surface100,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppTheme.surface200),
+          ),
+          child: Text(
+            'Address is optional — fill only if available',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11,
+              color: AppTheme.textMuted,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ),
         // Street Address
         TextFormField(
           controller: data.street,
-          maxLines: 3,
+          maxLines: 2,
           textCapitalization: TextCapitalization.sentences,
           decoration: const InputDecoration(
             labelText: 'Street Address',
             alignLabelWithHint: true,
             prefixIcon: Padding(
-              padding: EdgeInsets.only(bottom: 40),
-              child: Icon(Icons.location_on_outlined, size: 18),
+              padding: EdgeInsets.only(bottom: 24),
+              child: Icon(Icons.home_outlined, size: 18),
             ),
           ),
         ),
         const SizedBox(height: 12),
-        // Landmark (stacked)
+        // Landmark
         TextFormField(
           controller: data.landmark,
-          textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(labelText: 'Landmark'),
+          textCapitalization: TextCapitalization.sentences,
+          decoration: const InputDecoration(
+            labelText: 'Landmark',
+            prefixIcon: Icon(Icons.place_outlined, size: 18),
+          ),
         ),
         const SizedBox(height: 12),
-        // City (stacked)
+        // City
         TextFormField(
           controller: data.city,
           textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(labelText: 'City *'),
-          validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+          decoration: const InputDecoration(
+            labelText: 'City',
+            prefixIcon: Icon(Icons.location_city_outlined, size: 18),
+          ),
         ),
         const SizedBox(height: 12),
-        // District (stacked)
+        // District
         TextFormField(
           controller: data.district,
           textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(labelText: 'District'),
+          decoration: const InputDecoration(
+            labelText: 'District',
+            prefixIcon: Icon(Icons.map_outlined, size: 18),
+          ),
         ),
         const SizedBox(height: 12),
-        // Pincode (stacked)
+        // Pincode
         TextFormField(
           controller: data.pincode,
           keyboardType: TextInputType.number,
           maxLength: 6,
           decoration: const InputDecoration(
             labelText: 'Pincode',
+            prefixIcon: Icon(Icons.pin_drop_outlined, size: 18),
             counterText: '',
           ),
           onChanged: (v) => _onPincodeChanged(v, data),
         ),
         const SizedBox(height: 12),
-        // State dropdown (stacked)
-        InputDecorator(
-          decoration: const InputDecoration(
-            labelText: 'State',
-            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: data.state.isEmpty ? null : data.state,
-              hint: Text(
-                'Select State',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13,
-                  color: AppTheme.textMuted,
-                ),
+        // State dropdown
+        StatefulBuilder(
+          builder: (ctx, setInner) => InputDecorator(
+            decoration: const InputDecoration(
+              labelText: 'State',
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
               ),
-              isExpanded: true,
-              isDense: true,
-              items: _states
-                  .map(
-                    (s) => DropdownMenuItem(
-                      value: s,
-                      child: Text(
-                        s,
-                        style: GoogleFonts.plusJakartaSans(fontSize: 13),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: data.state.isEmpty ? null : data.state,
+                isExpanded: true,
+                isDense: true,
+                hint: Text(
+                  'Select State',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    color: AppTheme.textMuted,
+                  ),
+                ),
+                items: _states
+                    .map(
+                      (s) => DropdownMenuItem(
+                        value: s,
+                        child: Text(
+                          s,
+                          style: GoogleFonts.plusJakartaSans(fontSize: 13),
+                        ),
                       ),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (v) => setState(() => data.state = v ?? ''),
-              icon: const Icon(Icons.expand_more_rounded, size: 16),
+                    )
+                    .toList(),
+                onChanged: (v) {
+                  if (v != null) {
+                    setState(() => data.state = v);
+                  }
+                },
+                icon: const Icon(Icons.expand_more_rounded, size: 16),
+              ),
             ),
           ),
         ),
         const SizedBox(height: 12),
-        // Country dropdown (stacked)
-        InputDecorator(
-          decoration: const InputDecoration(
-            labelText: 'Country',
-            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: data.country,
-              isExpanded: true,
-              isDense: true,
-              items: _countries
-                  .map(
-                    (c) => DropdownMenuItem(
-                      value: c,
-                      child: Text(
-                        c,
-                        style: GoogleFonts.plusJakartaSans(fontSize: 13),
+        // Country dropdown
+        StatefulBuilder(
+          builder: (ctx, setInner) => InputDecorator(
+            decoration: const InputDecoration(
+              labelText: 'Country',
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: data.country.isEmpty ? null : data.country,
+                isExpanded: true,
+                isDense: true,
+                items: _countries
+                    .map(
+                      (c) => DropdownMenuItem(
+                        value: c,
+                        child: Text(
+                          c,
+                          style: GoogleFonts.plusJakartaSans(fontSize: 13),
+                        ),
                       ),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (v) => setState(() => data.country = v!),
-              icon: const Icon(Icons.expand_more_rounded, size: 16),
+                    )
+                    .toList(),
+                onChanged: (v) {
+                  if (v != null) {
+                    setState(() => data.country = v);
+                  }
+                },
+                icon: const Icon(Icons.expand_more_rounded, size: 16),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        // Open in Maps
+        OutlinedButton.icon(
+          onPressed: () {},
+          icon: const Icon(Icons.map_outlined, size: 16),
+          label: const Text('Open in Maps'),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppTheme.primary,
+            side: BorderSide(color: AppTheme.primary.withAlpha(100)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
             ),
           ),
         ),

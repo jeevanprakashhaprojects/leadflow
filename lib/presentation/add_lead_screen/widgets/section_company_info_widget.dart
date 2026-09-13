@@ -3,7 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../theme/app_theme.dart';
 
 class SectionCompanyInfoWidget extends StatefulWidget {
-  const SectionCompanyInfoWidget({super.key});
+  final void Function(int filledCount)? onCompulsoryChanged;
+  const SectionCompanyInfoWidget({super.key, this.onCompulsoryChanged});
 
   @override
   State<SectionCompanyInfoWidget> createState() =>
@@ -15,6 +16,12 @@ class _SectionCompanyInfoWidgetState extends State<SectionCompanyInfoWidget> {
   String _selectedCompanySize = '';
   String _selectedDepartment = '';
   String _selectedDecisionLevel = '';
+
+  // No compulsory fields — all optional
+  void _notifyParent() {
+    // Business Details is fully optional — always report 0 required
+    widget.onCompulsoryChanged?.call(0);
+  }
 
   static const _industries = [
     'Technology',
@@ -64,103 +71,94 @@ class _SectionCompanyInfoWidgetState extends State<SectionCompanyInfoWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Company Name + Industry
-        Row(
-          children: [
-            Expanded(
-              flex: 3,
-              child: TextFormField(
-                textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(
-                  labelText: 'Company Name *',
-                  prefixIcon: Icon(Icons.business_outlined, size: 18),
-                ),
-                validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
-              ),
+        // Optional badge
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: AppTheme.surface100,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppTheme.surface200),
+          ),
+          child: Text(
+            'All fields optional — fill only if applicable',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11,
+              color: AppTheme.textMuted,
+              fontStyle: FontStyle.italic,
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              flex: 2,
-              child: _DropdownFormField(
-                label: 'Industry',
-                value: _selectedIndustry,
-                items: _industries,
-                onChanged: (v) => setState(() => _selectedIndustry = v),
-              ),
-            ),
-          ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        // Company Name (optional)
+        TextFormField(
+          textCapitalization: TextCapitalization.words,
+          decoration: const InputDecoration(
+            labelText: 'Company Name',
+            prefixIcon: Icon(Icons.business_outlined, size: 18),
+          ),
         ),
         const SizedBox(height: 12),
-        // Job Title + Department
-        Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(labelText: 'Job Title'),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _DropdownFormField(
-                label: 'Department',
-                value: _selectedDepartment,
-                items: _departments,
-                onChanged: (v) => setState(() => _selectedDepartment = v),
-              ),
-            ),
-          ],
+        // Industry
+        _DropdownFormField(
+          label: 'Industry',
+          value: _selectedIndustry,
+          items: _industries,
+          onChanged: (v) => setState(() => _selectedIndustry = v),
         ),
         const SizedBox(height: 12),
-        // Company Size + Annual Revenue
-        Row(
-          children: [
-            Expanded(
-              child: _DropdownFormField(
-                label: 'Company Size',
-                value: _selectedCompanySize,
-                items: _companySizes,
-                onChanged: (v) => setState(() => _selectedCompanySize = v),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: TextFormField(
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Annual Revenue',
-                  prefixText: '₹ ',
-                ),
-              ),
-            ),
-          ],
+        // Job Title
+        TextFormField(
+          textCapitalization: TextCapitalization.words,
+          decoration: const InputDecoration(
+            labelText: 'Job Title',
+            prefixIcon: Icon(Icons.work_outline_rounded, size: 18),
+          ),
         ),
         const SizedBox(height: 12),
-        // Company Phone + Email
-        Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(
-                  labelText: 'Company Phone',
-                  prefixIcon: Icon(Icons.phone_outlined, size: 18),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: TextFormField(
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'Company Email',
-                  prefixIcon: Icon(Icons.email_outlined, size: 18),
-                ),
-              ),
-            ),
-          ],
+        // Department
+        _DropdownFormField(
+          label: 'Department',
+          value: _selectedDepartment,
+          items: _departments,
+          onChanged: (v) => setState(() => _selectedDepartment = v),
         ),
         const SizedBox(height: 12),
+        // Company Size
+        _DropdownFormField(
+          label: 'Company Size',
+          value: _selectedCompanySize,
+          items: _companySizes,
+          onChanged: (v) => setState(() => _selectedCompanySize = v),
+        ),
+        const SizedBox(height: 12),
+        // Annual Revenue
+        TextFormField(
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Annual Revenue',
+            prefixText: '₹ ',
+            prefixIcon: Icon(Icons.currency_rupee_rounded, size: 18),
+          ),
+        ),
+        const SizedBox(height: 12),
+        // Company Phone
+        TextFormField(
+          keyboardType: TextInputType.phone,
+          decoration: const InputDecoration(
+            labelText: 'Company Phone',
+            prefixIcon: Icon(Icons.phone_outlined, size: 18),
+          ),
+        ),
+        const SizedBox(height: 12),
+        // Company Email
+        TextFormField(
+          keyboardType: TextInputType.emailAddress,
+          decoration: const InputDecoration(
+            labelText: 'Company Email',
+            prefixIcon: Icon(Icons.email_outlined, size: 18),
+          ),
+        ),
+        const SizedBox(height: 16),
         // Decision Maker
         Container(
           padding: const EdgeInsets.all(14),
@@ -191,32 +189,22 @@ class _SectionCompanyInfoWidgetState extends State<SectionCompanyInfoWidget> {
                 ],
               ),
               const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      textCapitalization: TextCapitalization.words,
-                      decoration: const InputDecoration(
-                        labelText: 'Role / Title',
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _DropdownFormField(
-                      label: 'Decision Level',
-                      value: _selectedDecisionLevel,
-                      items: _decisionLevels,
-                      onChanged: (v) =>
-                          setState(() => _selectedDecisionLevel = v),
-                    ),
-                  ),
-                ],
+              TextFormField(
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(labelText: 'Role / Title'),
+              ),
+              const SizedBox(height: 12),
+              _DropdownFormField(
+                label: 'Decision Level',
+                value: _selectedDecisionLevel,
+                items: _decisionLevels,
+                onChanged: (v) => setState(() => _selectedDecisionLevel = v),
               ),
             ],
           ),
         ),
         const SizedBox(height: 12),
+        // Company Address
         TextFormField(
           maxLines: 3,
           textCapitalization: TextCapitalization.sentences,
@@ -230,18 +218,21 @@ class _SectionCompanyInfoWidgetState extends State<SectionCompanyInfoWidget> {
           ),
         ),
         const SizedBox(height: 12),
+        // Website URL
         TextFormField(
           keyboardType: TextInputType.url,
           decoration: const InputDecoration(
             labelText: 'Website URL',
             prefixIcon: Icon(Icons.language_rounded, size: 18),
-            hintText: 'https://company.com',
+            hintText: 'https://example.com',
           ),
         ),
       ],
     );
   }
 }
+
+// ─── Reusable Dropdown ────────────────────────────────────────────────────────
 
 class _DropdownFormField extends StatelessWidget {
   final String label;
@@ -269,21 +260,29 @@ class _DropdownFormField extends StatelessWidget {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: value.isEmpty ? null : value,
-          hint: const SizedBox.shrink(),
           isExpanded: true,
           isDense: true,
+          hint: Text(
+            'Select $label',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13,
+              color: AppTheme.textMuted,
+            ),
+          ),
           items: items
               .map(
-                (i) => DropdownMenuItem(
-                  value: i,
+                (item) => DropdownMenuItem(
+                  value: item,
                   child: Text(
-                    i,
+                    item,
                     style: GoogleFonts.plusJakartaSans(fontSize: 13),
                   ),
                 ),
               )
               .toList(),
-          onChanged: (v) => onChanged(v ?? ''),
+          onChanged: (v) {
+            if (v != null) onChanged(v);
+          },
           icon: const Icon(Icons.expand_more_rounded, size: 16),
         ),
       ),

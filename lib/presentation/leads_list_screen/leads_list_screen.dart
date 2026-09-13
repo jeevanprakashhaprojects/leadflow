@@ -274,7 +274,7 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
                       onChanged: (v) => setState(() => _searchQuery = v),
                     )
                   : Text(
-                      'LeadFlow',
+                      'Leads',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
@@ -322,7 +322,7 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
                       ),
                     ],
                   ),
-                  onPressed: () {},
+                  onPressed: () => context.go(AppRoutes.notificationsScreen),
                   tooltip: 'Notifications',
                 ),
                 Padding(

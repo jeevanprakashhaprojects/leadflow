@@ -372,7 +372,8 @@ class _SectionLabel extends StatelessWidget {
 // ─── Main Widget ──────────────────────────────────────────────────────────────
 
 class SectionContactInfoWidget extends StatefulWidget {
-  const SectionContactInfoWidget({super.key});
+  final void Function(int filledCount)? onCompulsoryChanged;
+  const SectionContactInfoWidget({super.key, this.onCompulsoryChanged});
 
   @override
   State<SectionContactInfoWidget> createState() =>
@@ -398,6 +399,25 @@ class _SectionContactInfoWidgetState extends State<SectionContactInfoWidget> {
   static const _genders = ['Male', 'Female', 'Other', 'Prefer not to say'];
   static const _maritalStatuses = ['Single', 'Married', 'Divorced', 'Widowed'];
 
+  /// 3 compulsory: First Name, Primary Mobile, Primary Email
+  void _notifyParent() {
+    int filled = 0;
+    if (_firstNameCtrl.text.trim().isNotEmpty) filled++;
+    if (_mobileCtrl.text.trim().isNotEmpty) filled++;
+    if (_emailCtrl.text.trim().isNotEmpty && _emailCtrl.text.contains('@')) {
+      filled++;
+    }
+    widget.onCompulsoryChanged?.call(filled);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _firstNameCtrl.addListener(_notifyParent);
+    _mobileCtrl.addListener(_notifyParent);
+    _emailCtrl.addListener(_notifyParent);
+  }
+
   @override
   void dispose() {
     _firstNameCtrl.dispose();
@@ -415,6 +435,36 @@ class _SectionContactInfoWidgetState extends State<SectionContactInfoWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Compulsory notice
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryContainer.withAlpha(80),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppTheme.primary.withAlpha(60)),
+          ),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.info_outline_rounded,
+                size: 14,
+                color: AppTheme.primary,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  '3 required: First Name, Primary Mobile, Primary Email',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    color: AppTheme.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
         // Salutation
         _SectionLabel('Salutation'),
         const SizedBox(height: 8),
@@ -451,11 +501,14 @@ class _SectionContactInfoWidgetState extends State<SectionContactInfoWidget> {
           ),
         ),
         const SizedBox(height: 12),
-        // First Name
+        // First Name *
         TextFormField(
           controller: _firstNameCtrl,
           textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(labelText: 'First Name *'),
+          decoration: const InputDecoration(
+            labelText: 'First Name *',
+            prefixIcon: Icon(Icons.person_outline_rounded, size: 18),
+          ),
           validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
         ),
         const SizedBox(height: 12),
@@ -463,12 +516,15 @@ class _SectionContactInfoWidgetState extends State<SectionContactInfoWidget> {
         TextFormField(
           controller: _lastNameCtrl,
           textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(labelText: 'Last Name'),
+          decoration: const InputDecoration(
+            labelText: 'Last Name',
+            prefixIcon: Icon(Icons.person_outline_rounded, size: 18),
+          ),
         ),
         const SizedBox(height: 20),
         _SectionLabel('Phone Numbers'),
         const SizedBox(height: 8),
-        // Primary Mobile
+        // Primary Mobile *
         _PhoneFieldWithCode(
           label: 'Primary Mobile *',
           controller: _mobileCtrl,
@@ -516,6 +572,7 @@ class _SectionContactInfoWidgetState extends State<SectionContactInfoWidget> {
         const SizedBox(height: 20),
         _SectionLabel('Email Addresses'),
         const SizedBox(height: 8),
+        // Primary Email *
         TextFormField(
           controller: _emailCtrl,
           keyboardType: TextInputType.emailAddress,
@@ -537,6 +594,7 @@ class _SectionContactInfoWidgetState extends State<SectionContactInfoWidget> {
           },
         ),
         const SizedBox(height: 12),
+        // Secondary Email
         TextFormField(
           controller: _email2Ctrl,
           keyboardType: TextInputType.emailAddress,
@@ -603,7 +661,6 @@ class _SectionContactInfoWidgetState extends State<SectionContactInfoWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // DOB
         TextFormField(
           readOnly: true,
           decoration: const InputDecoration(
@@ -620,7 +677,6 @@ class _SectionContactInfoWidgetState extends State<SectionContactInfoWidget> {
           },
         ),
         const SizedBox(height: 12),
-        // Gender
         InputDecorator(
           decoration: const InputDecoration(
             labelText: 'Gender',
@@ -655,7 +711,6 @@ class _SectionContactInfoWidgetState extends State<SectionContactInfoWidget> {
           ),
         ),
         const SizedBox(height: 12),
-        // Marital Status
         InputDecorator(
           decoration: const InputDecoration(
             labelText: 'Marital Status',

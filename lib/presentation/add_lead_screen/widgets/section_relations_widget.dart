@@ -10,17 +10,8 @@ class SectionRelationsWidget extends StatefulWidget {
 }
 
 class _SectionRelationsWidgetState extends State<SectionRelationsWidget> {
-  final List<_RelationData> _relations = [
-    _RelationData(
-      name: 'Sneha Sharma',
-      relation: 'Spouse',
-      phone: '+91 98765 12345',
-      age: '35',
-      occupation: 'Teacher',
-      company: 'DPS School',
-      isExpanded: false,
-    ),
-  ];
+  // Start with empty list — no default Sneha Sharma
+  final List<_RelationData> _relations = [];
 
   static const _relationTypes = [
     'Spouse',
@@ -81,6 +72,7 @@ class _SectionRelationsWidgetState extends State<SectionRelationsWidget> {
           occupation: '',
           company: '',
           isExpanded: true,
+          isSaved: false,
         ),
       );
     });
@@ -105,6 +97,35 @@ class _SectionRelationsWidgetState extends State<SectionRelationsWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (_relations.isEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppTheme.surface100,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.surface200),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.group_outlined,
+                    size: 20,
+                    color: AppTheme.textMuted,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'No relations added yet',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      color: AppTheme.textMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ..._relations.asMap().entries.map((entry) {
           final index = entry.key;
           final rel = entry.value;
@@ -173,6 +194,7 @@ class _RelationData {
   String occupation;
   String company;
   bool isExpanded;
+  bool isSaved;
 
   _RelationData({
     required this.name,
@@ -182,6 +204,7 @@ class _RelationData {
     required this.occupation,
     required this.company,
     required this.isExpanded,
+    this.isSaved = false,
   });
 
   _RelationData copyWith({
@@ -192,6 +215,7 @@ class _RelationData {
     String? occupation,
     String? company,
     bool? isExpanded,
+    bool? isSaved,
   }) {
     return _RelationData(
       name: name ?? this.name,
@@ -201,6 +225,7 @@ class _RelationData {
       occupation: occupation ?? this.occupation,
       company: company ?? this.company,
       isExpanded: isExpanded ?? this.isExpanded,
+      isSaved: isSaved ?? this.isSaved,
     );
   }
 }
@@ -261,6 +286,7 @@ class _RelationCardState extends State<_RelationCard> {
   }
 
   void _save() {
+    // After saving: keep expanded = true so user sees the saved profile card
     widget.onUpdate(
       widget.relation.copyWith(
         name: _nameCtrl.text,
@@ -269,6 +295,8 @@ class _RelationCardState extends State<_RelationCard> {
         age: _ageCtrl.text,
         occupation: _occupationCtrl.text,
         company: _companyCtrl.text,
+        isExpanded: true, // Stay expanded after save
+        isSaved: true,
       ),
     );
     ScaffoldMessenger.of(context).showSnackBar(
@@ -282,7 +310,9 @@ class _RelationCardState extends State<_RelationCard> {
             ),
             const SizedBox(width: 8),
             Text(
-              'Relation saved',
+              _nameCtrl.text.isNotEmpty
+                  ? '${_nameCtrl.text.split(' ').first} saved'
+                  : 'Relation saved',
               style: GoogleFonts.plusJakartaSans(fontSize: 13),
             ),
           ],
@@ -301,13 +331,20 @@ class _RelationCardState extends State<_RelationCard> {
     final rel = _selectedRelation;
     final color = widget.getRelationColor(rel);
     final initials = name.isNotEmpty ? widget.getInitials(name) : '?';
+    final firstName = name.isNotEmpty
+        ? name.trim().split(' ').first
+        : 'New Relation';
+    final isSaved = widget.relation.isSaved;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: AppTheme.surfaceLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.surface200),
+        border: Border.all(
+          color: isSaved ? color.withAlpha(80) : AppTheme.surface200,
+          width: isSaved ? 1.5 : 1,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withAlpha(10),
@@ -318,7 +355,7 @@ class _RelationCardState extends State<_RelationCard> {
       ),
       child: Column(
         children: [
-          // Summary row
+          // Profile header row (always visible)
           InkWell(
             onTap: widget.onToggleExpand,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
@@ -326,15 +363,25 @@ class _RelationCardState extends State<_RelationCard> {
               padding: const EdgeInsets.all(14),
               child: Row(
                 children: [
-                  CircleAvatar(
-                    radius: 20,
-                    backgroundColor: color.withAlpha(38),
-                    child: Text(
-                      initials,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: color,
+                  // Profile avatar
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: color.withAlpha(38),
+                      shape: BoxShape.circle,
+                      border: isSaved
+                          ? Border.all(color: color.withAlpha(100), width: 2)
+                          : null,
+                    ),
+                    child: Center(
+                      child: Text(
+                        initials,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: color,
+                        ),
                       ),
                     ),
                   ),
@@ -347,10 +394,11 @@ class _RelationCardState extends State<_RelationCard> {
                           children: [
                             Expanded(
                               child: Text(
-                                name.isNotEmpty ? name : 'New Relation',
+                                firstName,
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.textPrimary,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -359,7 +407,7 @@ class _RelationCardState extends State<_RelationCard> {
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 8,
-                                vertical: 2,
+                                vertical: 3,
                               ),
                               decoration: BoxDecoration(
                                 color: color.withAlpha(31),
@@ -374,6 +422,14 @@ class _RelationCardState extends State<_RelationCard> {
                                 ),
                               ),
                             ),
+                            if (isSaved) ...[
+                              const SizedBox(width: 6),
+                              Icon(
+                                Icons.check_circle_rounded,
+                                size: 14,
+                                color: AppTheme.success,
+                              ),
+                            ],
                           ],
                         ),
                         if (widget.relation.phone.isNotEmpty ||

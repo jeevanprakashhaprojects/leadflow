@@ -67,7 +67,8 @@ const List<LeadOwner> kLeadOwners = [
 // ─── Section Lead Details Widget ─────────────────────────────────────────────
 
 class SectionLeadDetailsWidget extends StatefulWidget {
-  const SectionLeadDetailsWidget({super.key});
+  final void Function(int filledCount)? onCompulsoryChanged;
+  const SectionLeadDetailsWidget({super.key, this.onCompulsoryChanged});
 
   @override
   State<SectionLeadDetailsWidget> createState() =>
@@ -97,9 +98,11 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
   final _campaignCtrl = TextEditingController();
   final _utmCtrl = TextEditingController();
   final _referralCtrl = TextEditingController();
+  final _actionNotesCtrl = TextEditingController();
   DateTime? _expectedCloseDate;
   DateTime? _scheduledActionDate;
-  final _actionNotesCtrl = TextEditingController();
+  TimeOfDay? _scheduledActionTime;
+  String _followUpFrequency = ''; // Daily/Weekly/Monthly/Yearly/Custom
 
   // Default to logged-in user (Priya Sharma - Admin)
   LeadOwner _selectedOwner = kLeadOwners.first;
@@ -154,6 +157,19 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
     if (id.startsWith('ADM')) return AppTheme.primary;
     if (id.startsWith('EMP')) return AppTheme.success;
     return const Color(0xFFD97706);
+  }
+
+  void _notifyParent() {
+    int filled = 0;
+    // Only scheduledAction is compulsory — deal value is NOT compulsory
+    if (_selectedAction.isNotEmpty) filled++;
+    widget.onCompulsoryChanged?.call(filled);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _dealValueCtrl.addListener(_notifyParent);
   }
 
   @override
@@ -401,7 +417,7 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
             Switch(
               value: _isVip,
               onChanged: (v) => setState(() => _isVip = v),
-              activeColor: const Color(0xFFB45309),
+              activeThumbColor: const Color(0xFFB45309),
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
           ],
@@ -415,7 +431,7 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Deal Value',
+          'Deal Value (Optional)',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 12,
             fontWeight: FontWeight.w600,
@@ -650,9 +666,16 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
             children: _actions.map((a) {
               final isSelected = _selectedAction == a;
               return GestureDetector(
-                onTap: () => setState(() {
-                  _selectedAction = isSelected ? '' : a;
-                }),
+                onTap: () {
+                  setState(() {
+                    _selectedAction = isSelected ? '' : a;
+                    // Reset follow-up frequency when action changes
+                    if (_selectedAction != 'Follow-up') {
+                      _followUpFrequency = '';
+                    }
+                  });
+                  _notifyParent();
+                },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   margin: const EdgeInsets.only(right: 8),
@@ -716,44 +739,283 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
                           color: AppTheme.primary,
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      // Date & Time (stacked)
-                      TextFormField(
-                        readOnly: true,
-                        decoration: InputDecoration(
-                          labelText: 'Date & Time *',
-                          prefixIcon: const Icon(
-                            Icons.calendar_today_outlined,
-                            size: 16,
+                      const SizedBox(height: 12),
+
+                      // ── Follow-up Frequency (only for Follow-up action) ──
+                      if (_selectedAction == 'Follow-up') ...[
+                        Text(
+                          'Follow-up Frequency',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.textSecondary,
                           ),
-                          hintText: _scheduledActionDate != null
-                              ? '${_scheduledActionDate!.day}/${_scheduledActionDate!.month}/${_scheduledActionDate!.year}'
-                              : null,
                         ),
-                        controller: TextEditingController(
-                          text: _scheduledActionDate != null
-                              ? '${_scheduledActionDate!.day}/${_scheduledActionDate!.month}/${_scheduledActionDate!.year}'
-                              : '',
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children:
+                              [
+                                'Daily',
+                                'Weekly',
+                                'Monthly',
+                                'Yearly',
+                                'Custom',
+                              ].map((freq) {
+                                final isSelected = _followUpFrequency == freq;
+                                return GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _followUpFrequency = freq;
+                                      // Auto-set date based on frequency
+                                      final now = DateTime.now();
+                                      switch (freq) {
+                                        case 'Daily':
+                                          _scheduledActionDate = now.add(
+                                            const Duration(days: 1),
+                                          );
+                                          break;
+                                        case 'Weekly':
+                                          _scheduledActionDate = now.add(
+                                            const Duration(days: 7),
+                                          );
+                                          break;
+                                        case 'Monthly':
+                                          _scheduledActionDate = DateTime(
+                                            now.year,
+                                            now.month + 1,
+                                            now.day,
+                                          );
+                                          break;
+                                        case 'Yearly':
+                                          _scheduledActionDate = DateTime(
+                                            now.year + 1,
+                                            now.month,
+                                            now.day,
+                                          );
+                                          break;
+                                        case 'Custom':
+                                          // Don't auto-set — user picks manually
+                                          _scheduledActionDate = null;
+                                          break;
+                                      }
+                                    });
+                                  },
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? AppTheme.primary
+                                          : AppTheme.surfaceLight,
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? AppTheme.primary
+                                            : AppTheme.surface200,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      freq,
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: isSelected
+                                            ? Colors.white
+                                            : AppTheme.textSecondary,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
                         ),
-                        validator: (v) =>
-                            (v == null || v.isEmpty) ? 'Date required' : null,
-                        onTap: () async {
-                          final picked = await showDatePicker(
-                            context: context,
-                            initialDate: DateTime.now().add(
-                              const Duration(days: 1),
-                            ),
-                            firstDate: DateTime.now(),
-                            lastDate: DateTime.now().add(
-                              const Duration(days: 365),
-                            ),
-                          );
-                          if (picked != null)
-                            setState(() => _scheduledActionDate = picked);
-                        },
+                        const SizedBox(height: 12),
+                      ],
+
+                      // ── Date (separate from time) ──
+                      GestureDetector(
+                        onTap:
+                            (_selectedAction == 'Follow-up' &&
+                                _followUpFrequency.isNotEmpty &&
+                                _followUpFrequency != 'Custom')
+                            ? null // locked for non-custom frequencies
+                            : () async {
+                                final picked = await showDatePicker(
+                                  context: context,
+                                  initialDate:
+                                      _scheduledActionDate ??
+                                      DateTime.now().add(
+                                        const Duration(days: 1),
+                                      ),
+                                  firstDate: DateTime.now(),
+                                  lastDate: DateTime.now().add(
+                                    const Duration(days: 365 * 2),
+                                  ),
+                                );
+                                if (picked != null) {
+                                  setState(() => _scheduledActionDate = picked);
+                                }
+                              },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                (_selectedAction == 'Follow-up' &&
+                                    _followUpFrequency.isNotEmpty &&
+                                    _followUpFrequency != 'Custom')
+                                ? AppTheme.surface100
+                                : AppTheme.surfaceLight,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppTheme.surface200),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.calendar_today_outlined,
+                                size: 18,
+                                color: AppTheme.textSecondary,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Date',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11,
+                                        color: AppTheme.textMuted,
+                                      ),
+                                    ),
+                                    Text(
+                                      _scheduledActionDate != null
+                                          ? '${_scheduledActionDate!.day}/${_scheduledActionDate!.month}/${_scheduledActionDate!.year}'
+                                          : 'Select date',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 13,
+                                        color: _scheduledActionDate != null
+                                            ? AppTheme.textPrimary
+                                            : AppTheme.textMuted,
+                                        fontWeight: _scheduledActionDate != null
+                                            ? FontWeight.w500
+                                            : FontWeight.w400,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (_selectedAction == 'Follow-up' &&
+                                  _followUpFrequency.isNotEmpty &&
+                                  _followUpFrequency != 'Custom')
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.primaryContainer,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    'Auto-set',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 10,
+                                      color: AppTheme.primary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                )
+                              else
+                                const Icon(
+                                  Icons.edit_calendar_outlined,
+                                  size: 16,
+                                  color: AppTheme.textMuted,
+                                ),
+                            ],
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 10),
-                      // Notes (stacked)
+
+                      // ── Time (separate from date) ──
+                      GestureDetector(
+                        onTap: () async {
+                          final picked = await showTimePicker(
+                            context: context,
+                            initialTime:
+                                _scheduledActionTime ?? TimeOfDay.now(),
+                          );
+                          if (picked != null) {
+                            setState(() => _scheduledActionTime = picked);
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.surfaceLight,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppTheme.surface200),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.access_time_rounded,
+                                size: 18,
+                                color: AppTheme.textSecondary,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Time',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11,
+                                        color: AppTheme.textMuted,
+                                      ),
+                                    ),
+                                    Text(
+                                      _scheduledActionTime != null
+                                          ? _scheduledActionTime!.format(
+                                              context,
+                                            )
+                                          : 'Select time',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 13,
+                                        color: _scheduledActionTime != null
+                                            ? AppTheme.textPrimary
+                                            : AppTheme.textMuted,
+                                        fontWeight: _scheduledActionTime != null
+                                            ? FontWeight.w500
+                                            : FontWeight.w400,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(
+                                Icons.edit_outlined,
+                                size: 16,
+                                color: AppTheme.textMuted,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // ── Notes ──
                       TextFormField(
                         controller: _actionNotesCtrl,
                         maxLines: 2,

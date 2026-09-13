@@ -34,9 +34,11 @@ class WizardStepIndicatorWidget extends StatelessWidget {
                 final isActive = index == currentStep;
                 final isCompleted = completedSteps[index];
                 final isPast = index < currentStep;
+                // Steps ahead of current that are not completed are locked
+                final isLocked = index > currentStep && !isCompleted;
 
                 return GestureDetector(
-                  onTap: () => onStepTap(index),
+                  onTap: isLocked ? null : () => onStepTap(index),
                   child: Row(
                     children: [
                       Column(
@@ -53,6 +55,8 @@ class WizardStepIndicatorWidget extends StatelessWidget {
                                   ? AppTheme.primary
                                   : isPast
                                   ? AppTheme.primaryMuted
+                                  : isLocked
+                                  ? AppTheme.surface200
                                   : AppTheme.surface200,
                               shape: BoxShape.circle,
                               boxShadow: isActive
@@ -71,6 +75,12 @@ class WizardStepIndicatorWidget extends StatelessWidget {
                                       Icons.check_rounded,
                                       size: 14,
                                       color: Colors.white,
+                                    )
+                                  : isLocked
+                                  ? const Icon(
+                                      Icons.lock_rounded,
+                                      size: 10,
+                                      color: AppTheme.textMuted,
                                     )
                                   : Text(
                                       '${index + 1}',

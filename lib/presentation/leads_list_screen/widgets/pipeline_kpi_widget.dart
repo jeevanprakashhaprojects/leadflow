@@ -7,25 +7,27 @@ class PipelineKpiWidget extends StatelessWidget {
   final List<LeadModel> leads;
   const PipelineKpiWidget({super.key, required this.leads});
 
-  String _formatValue(double value) {
-    if (value >= 10000000) return '₹${(value / 10000000).toStringAsFixed(1)}Cr';
-    if (value >= 100000) return '₹${(value / 100000).toStringAsFixed(1)}L';
-    if (value >= 1000) return '₹${(value / 1000).toStringAsFixed(0)}K';
-    return '₹${value.toStringAsFixed(0)}';
-  }
-
   @override
   Widget build(BuildContext context) {
     final totalLeads = leads.length;
-    final pipelineValue = leads
-        .where((l) => !['Won', 'Lost', 'Junk'].contains(l.status))
-        .fold(0.0, (sum, l) => sum + l.dealValue);
-    final qualified = leads.where((l) => l.status == 'Qualified').length;
-    final convRate = totalLeads > 0
-        ? ((leads.where((l) => l.status == 'Won').length / totalLeads) * 100)
-              .toStringAsFixed(0)
-        : '0';
-    final followUps = leads.where((l) => l.status == 'Contacted').length;
+    final newLeads = leads.where((l) => l.status == 'New').length;
+    // Sessions: total unique interactions (simulated as contacted + qualified + negotiation)
+    final sessions = leads
+        .where(
+          (l) => [
+            'Contacted',
+            'Qualified',
+            'Negotiations',
+            'Proposal',
+          ].contains(l.status),
+        )
+        .length;
+    // Results: Won leads
+    final results = leads
+        .where((l) => l.status == 'Won' || l.status == 'Result')
+        .length;
+    // Follow-up leads: Contacted status
+    final followUpLeads = leads.where((l) => l.status == 'Contacted').length;
 
     final kpis = [
       _KpiData(
@@ -37,27 +39,35 @@ class PipelineKpiWidget extends StatelessWidget {
         trendUp: true,
       ),
       _KpiData(
-        label: 'Pipeline',
-        value: _formatValue(pipelineValue),
-        icon: Icons.account_balance_wallet_rounded,
+        label: 'New Leads',
+        value: '$newLeads',
+        icon: Icons.fiber_new_rounded,
         color: AppTheme.secondary,
+        trend: '+5%',
+        trendUp: true,
+      ),
+      _KpiData(
+        label: 'Sessions',
+        value: '$sessions',
+        icon: Icons.timeline_rounded,
+        color: const Color(0xFF8B5CF6),
         trend: '+8%',
         trendUp: true,
       ),
       _KpiData(
-        label: 'Win Rate',
-        value: '$convRate%',
+        label: 'Results',
+        value: '$results',
         icon: Icons.emoji_events_rounded,
         color: AppTheme.success,
-        trend: '-2%',
-        trendUp: false,
+        trend: '+3%',
+        trendUp: true,
       ),
       _KpiData(
-        label: 'Follow-ups',
-        value: '$followUps',
+        label: 'Follow-up',
+        value: '$followUpLeads',
         icon: Icons.schedule_rounded,
         color: AppTheme.warning,
-        trend: '$followUps due',
+        trend: '$followUpLeads due',
         trendUp: false,
       ),
     ];

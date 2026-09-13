@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../theme/app_theme.dart';
 import '../../../widgets/status_badge_widget.dart';
 import '../leads_list_screen.dart';
+import 'package:go_router/go_router.dart';
+import '../../../routes/app_routes.dart';
 
 class LeadCardWidget extends StatefulWidget {
   final LeadModel lead;
@@ -138,7 +140,7 @@ class _LeadCardWidgetState extends State<LeadCardWidget>
               ],
             ),
             child: InkWell(
-              onTap: () {},
+              onTap: () => context.go(AppRoutes.leadDetailScreen, extra: lead),
               borderRadius: BorderRadius.circular(16),
               splashColor: AppTheme.primaryContainer.withAlpha(128),
               child: Padding(

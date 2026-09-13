@@ -51,63 +51,96 @@ Widget _buildDropdownField(
   String label,
   List<String> options, {
   String? value,
-  ValueChanged<String?>? onChanged,
   bool required = false,
 }) {
-  return Builder(
-    builder: (context) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _FieldLabel(label, required: required),
-          InputDecorator(
-            decoration: InputDecoration(
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 10,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: AppTheme.surface200),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: AppTheme.surface200),
-              ),
+  return _StatefulDropdownField(
+    label: label,
+    options: options,
+    initialValue: value,
+    required: required,
+  );
+}
+
+/// Stateful dropdown so each field manages its own value
+class _StatefulDropdownField extends StatefulWidget {
+  final String label;
+  final List<String> options;
+  final String? initialValue;
+  final bool required;
+
+  const _StatefulDropdownField({
+    required this.label,
+    required this.options,
+    this.initialValue,
+    this.required = false,
+  });
+
+  @override
+  State<_StatefulDropdownField> createState() => _StatefulDropdownFieldState();
+}
+
+class _StatefulDropdownFieldState extends State<_StatefulDropdownField> {
+  String? _value;
+
+  @override
+  void initState() {
+    super.initState();
+    _value = widget.initialValue;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _FieldLabel(widget.label, required: widget.required),
+        InputDecorator(
+          decoration: InputDecoration(
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 10,
             ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: value,
-                isExpanded: true,
-                isDense: true,
-                hint: Text(
-                  'Select',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
-                    color: AppTheme.textMuted,
-                  ),
-                ),
-                items: options
-                    .map(
-                      (o) => DropdownMenuItem(
-                        value: o,
-                        child: Text(
-                          o,
-                          style: GoogleFonts.plusJakartaSans(fontSize: 13),
-                        ),
-                      ),
-                    )
-                    .toList(),
-                onChanged: onChanged,
-                icon: const Icon(Icons.expand_more_rounded, size: 16),
-              ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: AppTheme.surface200),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: AppTheme.surface200),
             ),
           ),
-          const SizedBox(height: 12),
-        ],
-      );
-    },
-  );
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: _value,
+              isExpanded: true,
+              isDense: true,
+              hint: Text(
+                'Select',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  color: AppTheme.textMuted,
+                ),
+              ),
+              items: widget.options
+                  .map(
+                    (o) => DropdownMenuItem(
+                      value: o,
+                      child: Text(
+                        o,
+                        style: GoogleFonts.plusJakartaSans(fontSize: 13),
+                      ),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (v) => setState(() => _value = v),
+              icon: const Icon(Icons.expand_more_rounded, size: 16),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+      ],
+    );
+  }
 }
 
 Widget _buildTextField(
@@ -250,6 +283,249 @@ class _AccordionSectionState extends State<_AccordionSection> {
   }
 }
 
+// ─── Nominees Sub-section ─────────────────────────────────────────────────────
+
+class _NomineesSection extends StatefulWidget {
+  const _NomineesSection();
+
+  @override
+  State<_NomineesSection> createState() => _NomineesSectionState();
+}
+
+class _NomineesSectionState extends State<_NomineesSection> {
+  final List<_NomineeData> _nominees = [];
+
+  static const _relationTypes = [
+    'Spouse',
+    'Son',
+    'Daughter',
+    'Father',
+    'Mother',
+    'Brother',
+    'Sister',
+    'Guardian',
+    'Other',
+  ];
+
+  void _addNominee() {
+    setState(() {
+      _nominees.add(_NomineeData());
+    });
+  }
+
+  void _removeNominee(int index) {
+    setState(() => _nominees.removeAt(index));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final totalShare = _nominees.fold<double>(
+      0,
+      (sum, n) => sum + (double.tryParse(n.shareCtrl.text) ?? 0),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (_nominees.isEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Text(
+              'No nominees added yet',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                color: AppTheme.textMuted,
+              ),
+            ),
+          ),
+        ..._nominees.asMap().entries.map((entry) {
+          final i = entry.key;
+          final nominee = entry.value;
+          return _NomineeCard(
+            key: ValueKey('nominee_$i'),
+            nominee: nominee,
+            relationTypes: _relationTypes,
+            index: i,
+            onRemove: () => _removeNominee(i),
+            onChanged: () => setState(() {}),
+          );
+        }),
+        if (_nominees.isNotEmpty && totalShare != 100)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.info_outline_rounded,
+                  size: 14,
+                  color: totalShare > 100 ? AppTheme.error : AppTheme.warning,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'Total share: ${totalShare.toStringAsFixed(0)}% (must equal 100%)',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    color: totalShare > 100 ? AppTheme.error : AppTheme.warning,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        GestureDetector(
+          onTap: _addNominee,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppTheme.surface100,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppTheme.primary.withAlpha(102)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.add_rounded,
+                  size: 16,
+                  color: AppTheme.primary,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'Add Nominee',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: AppTheme.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _NomineeData {
+  final nameCtrl = TextEditingController();
+  final shareCtrl = TextEditingController();
+  String relation = 'Spouse';
+}
+
+class _NomineeCard extends StatefulWidget {
+  final _NomineeData nominee;
+  final List<String> relationTypes;
+  final int index;
+  final VoidCallback onRemove;
+  final VoidCallback onChanged;
+
+  const _NomineeCard({
+    super.key,
+    required this.nominee,
+    required this.relationTypes,
+    required this.index,
+    required this.onRemove,
+    required this.onChanged,
+  });
+
+  @override
+  State<_NomineeCard> createState() => _NomineeCardState();
+}
+
+class _NomineeCardState extends State<_NomineeCard> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.surface100,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppTheme.surface200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                'Nominee ${widget.index + 1}',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.primary,
+                ),
+              ),
+              const Spacer(),
+              GestureDetector(
+                onTap: widget.onRemove,
+                child: const Icon(
+                  Icons.close_rounded,
+                  size: 16,
+                  color: AppTheme.error,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          TextFormField(
+            controller: widget.nominee.nameCtrl,
+            textCapitalization: TextCapitalization.words,
+            decoration: const InputDecoration(labelText: 'Nominee Name'),
+            onChanged: (_) => widget.onChanged(),
+          ),
+          const SizedBox(height: 10),
+          InputDecorator(
+            decoration: const InputDecoration(
+              labelText: 'Relation',
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 10,
+              ),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: widget.nominee.relation,
+                isDense: true,
+                isExpanded: true,
+                items: widget.relationTypes
+                    .map(
+                      (r) => DropdownMenuItem(
+                        value: r,
+                        child: Text(
+                          r,
+                          style: GoogleFonts.plusJakartaSans(fontSize: 13),
+                        ),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (v) {
+                  if (v != null) {
+                    setState(() => widget.nominee.relation = v);
+                    widget.onChanged();
+                  }
+                },
+                icon: const Icon(Icons.expand_more_rounded, size: 16),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextFormField(
+            controller: widget.nominee.shareCtrl,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Share %',
+              hintText: 'e.g. 50',
+              suffixText: '%',
+            ),
+            onChanged: (_) => widget.onChanged(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ─── Universal Fields ─────────────────────────────────────────────────────────
 
 class _UniversalFieldsSection extends StatefulWidget {
@@ -269,7 +545,6 @@ class _UniversalFieldsSectionState extends State<_UniversalFieldsSection> {
   String? _crossSell;
   String? _upsell;
   String? _replacement;
-  final List<String> _documents = [];
 
   @override
   Widget build(BuildContext context) {
@@ -326,21 +601,6 @@ class _UniversalFieldsSectionState extends State<_UniversalFieldsSection> {
           ['Phone Call', 'WhatsApp', 'Email', 'SMS', 'In-Person Visit'],
           _commPref,
           (v) => setState(() => _commPref = v),
-        ),
-        _buildDropdownFieldStateful(
-          'Documents Required',
-          [
-            'Aadhaar',
-            'PAN',
-            'Income Proof',
-            'Address Proof',
-            'Medical Reports',
-            'Vehicle RC',
-            'Property Papers',
-            'None identified',
-          ],
-          null,
-          null,
         ),
         _buildDropdownFieldStateful(
           'Cross-sell Opportunity',
@@ -409,7 +669,7 @@ class _UniversalFieldsSectionState extends State<_UniversalFieldsSection> {
     String label,
     List<String> options,
     String? value,
-    ValueChanged<String?>? onChanged,
+    ValueChanged<String?> onChanged,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -628,9 +888,6 @@ Widget _buildLifeInsuranceFields() {
       _buildTextField('Trustee Name (if for child)'),
       _buildTextField('Trustee Age'),
       _buildTextField('Trustee Relation'),
-      _buildTextField('Nominee Name'),
-      _buildTextField('Nominee Relation'),
-      _buildTextField('Nominee Share (%)'),
     ],
   );
 }
@@ -1428,6 +1685,14 @@ Widget _buildInterestContent(String industry) {
           content: _getIndustryFields(industry),
           initiallyExpanded: true,
         ),
+        // Nominees sub-section (replaces Documents Required)
+        _AccordionSection(
+          title: 'Nominees',
+          icon: Icons.people_alt_rounded,
+          color: const Color(0xFF009688),
+          content: const _NomineesSection(),
+          initiallyExpanded: false,
+        ),
         // Agent Activity Tracking
         _AccordionSection(
           title: 'Agent Activity Tracking',
@@ -1613,6 +1878,97 @@ Widget _getIndustryFields(String industry) {
       return _buildAgricultureFields();
     default:
       return _buildTextField('Details');
+  }
+}
+
+// ─── Interest Card with Notes ─────────────────────────────────────────────────
+
+class _InterestCardWithNotes extends StatefulWidget {
+  final String industry;
+
+  const _InterestCardWithNotes({super.key, required this.industry});
+
+  @override
+  State<_InterestCardWithNotes> createState() => _InterestCardWithNotesState();
+}
+
+class _InterestCardWithNotesState extends State<_InterestCardWithNotes> {
+  final _notesCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _notesCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildInterestContent(widget.industry),
+        const SizedBox(height: 8),
+        // Notes for this interest
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppTheme.surface100,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppTheme.surface200),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(
+                    Icons.sticky_note_2_outlined,
+                    size: 16,
+                    color: AppTheme.warning,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Notes for ${widget.industry}',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _notesCtrl,
+                maxLines: 3,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: InputDecoration(
+                  hintText:
+                      'Add notes specific to this ${widget.industry} interest...',
+                  hintStyle: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    color: AppTheme.textMuted,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: AppTheme.surface200),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: AppTheme.surface200),
+                  ),
+                ),
+                style: GoogleFonts.plusJakartaSans(fontSize: 13),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -1942,9 +2298,14 @@ class _SectionInterestsWidgetState extends State<SectionInterestsWidget> {
           ),
         ),
         const SizedBox(height: 16),
-        // Active interest content with accordion sections
+        // Active interest content with notes
         if (_interests.isNotEmpty)
-          _buildInterestContent(_interests[_activeInterestIndex].industry),
+          _InterestCardWithNotes(
+            key: ValueKey(
+              '${_interests[_activeInterestIndex].industry}_$_activeInterestIndex',
+            ),
+            industry: _interests[_activeInterestIndex].industry,
+          ),
       ],
     );
   }
