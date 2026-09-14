@@ -168,7 +168,7 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
 
   void _notifyParent() {
     int filled = 0;
-    // Only scheduledAction is compulsory — deal value is NOT compulsory
+    // Both scheduledAction AND date AND time are compulsory
     if (_selectedAction.isNotEmpty) filled++;
     widget.onCompulsoryChanged?.call(filled);
   }
@@ -177,6 +177,8 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
   void initState() {
     super.initState();
     _dealValueCtrl.addListener(_notifyParent);
+    // Default scheduled action date to today
+    _scheduledActionDate = DateTime.now();
   }
 
   @override
@@ -854,11 +856,10 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
                                 final picked = await showDatePicker(
                                   context: context,
                                   initialDate:
-                                      _scheduledActionDate ??
-                                      DateTime.now().add(
-                                        const Duration(days: 1),
-                                      ),
-                                  firstDate: DateTime.now(),
+                                      _scheduledActionDate ?? DateTime.now(),
+                                  firstDate: DateTime.now().subtract(
+                                    const Duration(days: 1),
+                                  ),
                                   lastDate: DateTime.now().add(
                                     const Duration(days: 365 * 2),
                                   ),
@@ -904,15 +905,11 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
                                     Text(
                                       _scheduledActionDate != null
                                           ? '${_scheduledActionDate!.day}/${_scheduledActionDate!.month}/${_scheduledActionDate!.year}'
-                                          : 'Select date',
+                                          : '${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 13,
-                                        color: _scheduledActionDate != null
-                                            ? AppTheme.textPrimary
-                                            : AppTheme.textMuted,
-                                        fontWeight: _scheduledActionDate != null
-                                            ? FontWeight.w500
-                                            : FontWeight.w400,
+                                        color: AppTheme.textPrimary,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                   ],
@@ -951,7 +948,7 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
                       ),
                       const SizedBox(height: 10),
 
-                      // ── Time (separate from date) ──
+                      // ── Time (separate from date) — Required ──
                       GestureDetector(
                         onTap: () async {
                           final picked = await showTimePicker(
@@ -961,6 +958,7 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
                           );
                           if (picked != null) {
                             setState(() => _scheduledActionTime = picked);
+                            _notifyParent();
                           }
                         },
                         child: Container(
@@ -971,7 +969,11 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
                           decoration: BoxDecoration(
                             color: AppTheme.surfaceLight,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppTheme.surface200),
+                            border: Border.all(
+                              color: _scheduledActionTime == null
+                                  ? AppTheme.error.withAlpha(100)
+                                  : AppTheme.surface200,
+                            ),
                           ),
                           child: Row(
                             children: [
@@ -985,12 +987,37 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      'Time',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11,
-                                        color: AppTheme.textMuted,
-                                      ),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          'Time',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 11,
+                                            color: AppTheme.textMuted,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 5,
+                                            vertical: 1,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: AppTheme.error.withAlpha(20),
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            'Required',
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 8,
+                                              fontWeight: FontWeight.w700,
+                                              color: AppTheme.error,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                     Text(
                                       _scheduledActionTime != null
@@ -1002,7 +1029,7 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
                                         fontSize: 13,
                                         color: _scheduledActionTime != null
                                             ? AppTheme.textPrimary
-                                            : AppTheme.textMuted,
+                                            : AppTheme.error.withAlpha(180),
                                         fontWeight: _scheduledActionTime != null
                                             ? FontWeight.w500
                                             : FontWeight.w400,
@@ -1020,6 +1047,18 @@ class _SectionLeadDetailsWidgetState extends State<SectionLeadDetailsWidget>
                           ),
                         ),
                       ),
+                      if (_scheduledActionTime == null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            'Please select a time for the scheduled action',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              color: AppTheme.error,
+                            ),
+                          ),
+                        ),
+
                       const SizedBox(height: 10),
 
                       // ── Notes ──

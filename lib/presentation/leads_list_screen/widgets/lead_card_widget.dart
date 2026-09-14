@@ -168,27 +168,28 @@ class _LeadCardWidgetState extends State<LeadCardWidget>
                           color: statusColor,
                         ),
                         const Spacer(),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.access_time_rounded,
-                              size: 12,
-                              color: AppTheme.textMuted,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              lead.lastContact,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 11,
+                        if (lead.lastContact.isNotEmpty)
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.access_time_rounded,
+                                size: 12,
                                 color: AppTheme.textMuted,
                               ),
-                            ),
-                          ],
-                        ),
+                              const SizedBox(width: 4),
+                              Text(
+                                lead.lastContact,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11,
+                                  color: AppTheme.textMuted,
+                                ),
+                              ),
+                            ],
+                          ),
                       ],
                     ),
                     const SizedBox(height: 10),
-                    // Name + phone number (instead of company)
+                    // Name
                     Text(
                       lead.name,
                       style: GoogleFonts.plusJakartaSans(
@@ -197,61 +198,83 @@ class _LeadCardWidgetState extends State<LeadCardWidget>
                         color: AppTheme.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.phone_rounded,
-                          size: 12,
+                    // Phone — only show if filled
+                    if (lead.phone.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.phone_rounded,
+                            size: 12,
+                            color: AppTheme.textMuted,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              lead.phone,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12,
+                                color: AppTheme.textSecondary,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (lead.industry.isNotEmpty ||
+                              lead.company.isNotEmpty) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              width: 3,
+                              height: 3,
+                              decoration: const BoxDecoration(
+                                color: AppTheme.textMuted,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                lead.industry.isNotEmpty
+                                    ? lead.industry
+                                    : lead.company,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  color: AppTheme.textMuted,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ] else if (lead.industry.isNotEmpty ||
+                        lead.company.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        lead.industry.isNotEmpty ? lead.industry : lead.company,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
                           color: AppTheme.textMuted,
                         ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            lead.phone.isNotEmpty ? lead.phone : 'No phone',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12,
-                              color: AppTheme.textSecondary,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          width: 3,
-                          height: 3,
-                          decoration: const BoxDecoration(
-                            color: AppTheme.textMuted,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          lead.industry.isNotEmpty
-                              ? lead.industry
-                              : lead.company,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            color: AppTheme.textMuted,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                     const SizedBox(height: 12),
-                    // Bottom row: deal value + tags + owner avatar (tappable) + actions
+                    // Bottom row: deal value (only if > 0) + tags + owner avatar + actions
                     Row(
                       children: [
-                        Text(
-                          _formatDealValue(lead.dealValue),
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.textPrimary,
-                            fontFeatures: const [FontFeature.tabularFigures()],
+                        if (lead.dealValue > 0)
+                          Text(
+                            _formatDealValue(lead.dealValue),
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.textPrimary,
+                              fontFeatures: const [
+                                FontFeature.tabularFigures(),
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
+                        if (lead.dealValue > 0) const SizedBox(width: 8),
                         if (lead.tags.contains('VIP'))
                           Container(
                             padding: const EdgeInsets.symmetric(
@@ -273,24 +296,25 @@ class _LeadCardWidgetState extends State<LeadCardWidget>
                           ),
                         const Spacer(),
                         // Owner avatar — taps to employee details
-                        GestureDetector(
-                          onTap: () => _showOwnerDetails(context),
-                          child: Tooltip(
-                            message: lead.ownerName,
-                            child: CircleAvatar(
-                              radius: 16,
-                              backgroundColor: AppTheme.primaryContainer,
-                              child: Text(
-                                lead.ownerInitials,
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppTheme.primary,
+                        if (lead.ownerInitials.isNotEmpty)
+                          GestureDetector(
+                            onTap: () => _showOwnerDetails(context),
+                            child: Tooltip(
+                              message: lead.ownerName,
+                              child: CircleAvatar(
+                                radius: 16,
+                                backgroundColor: AppTheme.primaryContainer,
+                                child: Text(
+                                  lead.ownerInitials,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppTheme.primary,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
                         const SizedBox(width: 8),
                         IconButton(
                           icon: const Icon(

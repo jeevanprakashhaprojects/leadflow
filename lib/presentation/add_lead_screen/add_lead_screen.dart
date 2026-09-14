@@ -9,6 +9,7 @@ import './widgets/section_address_widget.dart';
 import './widgets/section_company_info_widget.dart';
 import './widgets/section_contact_info_widget.dart';
 import './widgets/section_lead_details_widget.dart';
+import './widgets/section_interests_widget.dart';
 import './widgets/section_notes_widget.dart';
 import './widgets/section_relations_widget.dart';
 import './widgets/section_social_widget.dart';
@@ -20,7 +21,8 @@ import './widgets/wizard_step_indicator_widget.dart';
 class AddLeadScreen extends StatefulWidget {
   /// If provided, this lead will be pre-filled for editing
   final Map<String, dynamic>? editLead;
-  const AddLeadScreen({super.key, this.editLead});
+  final void Function()? onLeadsChanged;
+  const AddLeadScreen({super.key, this.editLead, this.onLeadsChanged});
 
   @override
   State<AddLeadScreen> createState() => _AddLeadScreenState();
@@ -37,7 +39,7 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
   bool get _isEditing => widget.editLead != null;
 
   // Expandable section states
-  final List<bool> _sectionExpanded = List.filled(7, true);
+  final List<bool> _sectionExpanded = List.filled(8, true);
 
   static const List<WizardStep> _steps = [
     WizardStep('Contact Info', Icons.person_outline_rounded),
@@ -46,11 +48,12 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
     WizardStep('Address', Icons.location_on_outlined),
     WizardStep('Social', Icons.share_outlined),
     WizardStep('Notes', Icons.notes_rounded),
+    WizardStep('Interests', Icons.star_outline_rounded),
     WizardStep('Relations', Icons.group_outlined),
   ];
 
   // Completion state per step
-  final List<bool> _stepCompleted = List.filled(7, false);
+  final List<bool> _stepCompleted = List.filled(8, false);
 
   // Track field fill counts per section for progress calculation
   final List<List<int>> _sectionProgress = [
@@ -60,6 +63,7 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
     [0, 0], // Address: optional
     [0, 0], // Social: optional
     [0, 0], // Notes: optional
+    [0, 0], // Interests: optional
     [0, 0], // Relations: optional
   ];
 
@@ -326,6 +330,9 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
             ..._formData,
           };
         }
+        // Notify leads list to refresh — use global callback
+        widget.onLeadsChanged?.call();
+        onLeadsChanged?.call();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -367,6 +374,9 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
           if (notes.isNotEmpty) 'notes': notes,
           ..._formData,
         });
+        // Notify leads list to refresh — use global callback
+        widget.onLeadsChanged?.call();
+        onLeadsChanged?.call();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -416,10 +426,15 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
       case 3:
         return SectionAddressWidget(prefillData: prefill);
       case 4:
-        return const SectionSocialWidget();
+        return SectionSocialWidget(
+          prefillData: prefill,
+          onDataChanged: _updateFormData,
+        );
       case 5:
         return SectionNotesWidget(prefillData: prefill);
       case 6:
+        return const SectionInterestsWidget();
+      case 7:
         return const SectionRelationsWidget();
       default:
         return const SizedBox.shrink();

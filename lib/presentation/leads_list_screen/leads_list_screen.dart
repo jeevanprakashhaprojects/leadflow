@@ -10,8 +10,200 @@ import './widgets/lead_card_widget.dart';
 import './widgets/lead_filter_bar_widget.dart';
 import './widgets/pipeline_kpi_widget.dart';
 
-// Global leads list — starts empty, populated when leads are added
-final List<Map<String, dynamic>> globalLeadMaps = [];
+// Global leads list — starts with rich default leads showing all possible fields
+final List<Map<String, dynamic>> globalLeadMaps = [
+  {
+    'id': 'default-1',
+    'name': 'Rahul Mehta',
+    'phone': '+91 98765 43210',
+    'email': 'rahul.mehta@techcorp.in',
+    'company': 'TechCorp Solutions',
+    'industry': 'Technology',
+    'status': 'New',
+    'priority': 'High',
+    'score': 82,
+    'dealValue': 450000.0,
+    'ownerInitials': 'PS',
+    'ownerName': 'Priya Sharma',
+    'lastContact': '2 days ago',
+    'tags': ['Enterprise', 'Hot Lead'],
+    'whatsapp': '+91 98765 43210',
+    'designation': 'CTO',
+    'website': 'www.techcorp.in',
+    'annualRevenue': '₹5 Crore',
+    'numberOfEmployees': '150',
+    'businessType': 'Private Limited',
+    'source': 'LinkedIn',
+    'campaign': 'Q3 Enterprise Drive',
+    'tier': 'Gold',
+    'address': '42, MG Road',
+    'city': 'Bangalore',
+    'state': 'Karnataka',
+    'country': 'India',
+    'pincode': '560001',
+    'linkedin': 'linkedin.com/in/rahulmehta',
+    'notes':
+        'Very interested in enterprise plan. Decision maker. Budget approved for Q4.',
+    'interests': ['Enterprise Plan', 'API Integration', 'Custom Dashboard'],
+    'createdAt': DateTime.now().subtract(const Duration(days: 5)),
+    'scheduledAction': 'Product Demo',
+    'scheduledActionDate':
+        '${DateTime.now().add(const Duration(days: 3)).day}/${DateTime.now().add(const Duration(days: 3)).month}/${DateTime.now().add(const Duration(days: 3)).year}',
+    'expectedCloseDate':
+        '${DateTime.now().add(const Duration(days: 30)).day}/${DateTime.now().add(const Duration(days: 30)).month}/${DateTime.now().add(const Duration(days: 30)).year}',
+  },
+  {
+    'id': 'default-2',
+    'name': 'Sneha Kapoor',
+    'phone': '+91 87654 32109',
+    'email': 'sneha.k@financeplus.com',
+    'company': 'FinancePlus Ltd',
+    'industry': 'Finance',
+    'status': 'In Progress',
+    'priority': 'Medium',
+    'score': 65,
+    'dealValue': 280000.0,
+    'ownerInitials': 'AK',
+    'ownerName': 'Amit Kumar',
+    'lastContact': '1 week ago',
+    'tags': ['SME', 'Renewal'],
+    'designation': 'Finance Manager',
+    'source': 'Referral',
+    'city': 'Mumbai',
+    'state': 'Maharashtra',
+    'country': 'India',
+    'notes': 'Policy renewal due next month. Interested in upgrading coverage.',
+    'interests': ['Term Insurance', 'Health Cover', 'Group Policy'],
+    'createdAt': DateTime.now().subtract(const Duration(days: 12)),
+    'scheduledAction': 'Follow-up Call',
+    'scheduledActionDate':
+        '${DateTime.now().add(const Duration(days: 1)).day}/${DateTime.now().add(const Duration(days: 1)).month}/${DateTime.now().add(const Duration(days: 1)).year}',
+  },
+  {
+    'id': 'default-3',
+    'name': 'Vikram Singh',
+    'phone': '+91 76543 21098',
+    'email': 'vikram@healthbridge.org',
+    'company': 'HealthBridge',
+    'industry': 'Healthcare',
+    'status': 'Proposal',
+    'priority': 'High',
+    'score': 74,
+    'dealValue': 620000.0,
+    'ownerInitials': 'PS',
+    'ownerName': 'Priya Sharma',
+    'lastContact': '3 days ago',
+    'tags': ['Healthcare', 'Warm'],
+    'designation': 'Operations Head',
+    'source': 'Trade Show',
+    'city': 'Hyderabad',
+    'state': 'Telangana',
+    'country': 'India',
+    'linkedin': 'linkedin.com/in/vikramsingh',
+    'notes':
+        'Looking to upgrade existing plan. Proposal sent. Awaiting approval.',
+    'interests': [
+      'Premium Upgrade',
+      'Family Floater',
+      'Critical Illness Cover',
+    ],
+    'createdAt': DateTime.now().subtract(const Duration(days: 8)),
+    'scheduledAction': 'Appointment',
+    'scheduledActionDate':
+        '${DateTime.now().add(const Duration(days: 5)).day}/${DateTime.now().add(const Duration(days: 5)).month}/${DateTime.now().add(const Duration(days: 5)).year}',
+  },
+  {
+    'id': 'default-4',
+    'name': 'Anita Desai',
+    'phone': '+91 65432 10987',
+    'email': 'anita.desai@retailhub.in',
+    'company': 'RetailHub India',
+    'industry': 'Retail',
+    'status': 'Won',
+    'priority': 'Low',
+    'score': 91,
+    'dealValue': 175000.0,
+    'ownerInitials': 'RV',
+    'ownerName': 'Ravi Verma',
+    'lastContact': 'Yesterday',
+    'tags': ['Existing Customer', 'VIP'],
+    'designation': 'Proprietor',
+    'source': 'Walk-in',
+    'city': 'Delhi',
+    'state': 'Delhi',
+    'country': 'India',
+    'notes': 'Existing customer. Add-on coverage for family members.',
+    'interests': ['Add-on Cover', 'Family Floater'],
+    'createdAt': DateTime.now().subtract(const Duration(days: 20)),
+  },
+  {
+    'id': 'default-5',
+    'name': 'Karan Joshi',
+    'phone': '+91 54321 09876',
+    'email': 'karan.j@edutech.co',
+    'company': 'EduTech Co',
+    'industry': 'Education',
+    'status': 'New',
+    'priority': 'Medium',
+    'score': 55,
+    'dealValue': 95000.0,
+    'ownerInitials': 'AK',
+    'ownerName': 'Amit Kumar',
+    'lastContact': '5 days ago',
+    'tags': ['Startup', 'Cold Lead'],
+    'designation': 'Founder',
+    'source': 'Cold Call',
+    'city': 'Pune',
+    'state': 'Maharashtra',
+    'country': 'India',
+    'notes':
+        'Startup founder. Budget constrained but interested in basic plan.',
+    'interests': ['Startup Plan', 'Basic Cover'],
+    'createdAt': DateTime.now().subtract(const Duration(days: 6)),
+    'scheduledAction': 'Video Call',
+    'scheduledActionDate':
+        '${DateTime.now().add(const Duration(days: 4)).day}/${DateTime.now().add(const Duration(days: 4)).month}/${DateTime.now().add(const Duration(days: 4)).year}',
+  },
+  {
+    'id': 'default-6',
+    'name': 'Mohammed Al-Rashid',
+    'phone': '+971 50 123 4567',
+    'email': 'mohammed@alrashid.ae',
+    'company': 'Al-Rashid Trading LLC',
+    'industry': 'Trading',
+    'status': 'Qualified',
+    'priority': 'High',
+    'score': 88,
+    'dealValue': 1200000.0,
+    'ownerInitials': 'PS',
+    'ownerName': 'Priya Sharma',
+    'lastContact': 'Today',
+    'tags': ['VIP', 'International', 'Hot Lead'],
+    'designation': 'Managing Director',
+    'source': 'Partner',
+    'city': 'Dubai',
+    'state': 'Dubai',
+    'country': 'UAE',
+    'whatsapp': '+971 50 123 4567',
+    'linkedin': 'linkedin.com/in/mohammedalrashid',
+    'notes':
+        'High-value international client. Negotiating pricing. Decision expected this month.',
+    'interests': [
+      'Corporate Plan',
+      'International Coverage',
+      'Key Man Insurance',
+    ],
+    'createdAt': DateTime.now().subtract(const Duration(days: 15)),
+    'scheduledAction': 'Negotiation Call',
+    'scheduledActionDate':
+        '${DateTime.now().add(const Duration(days: 2)).day}/${DateTime.now().add(const Duration(days: 2)).month}/${DateTime.now().add(const Duration(days: 2)).year}',
+    'expectedCloseDate':
+        '${DateTime.now().add(const Duration(days: 15)).day}/${DateTime.now().add(const Duration(days: 15)).month}/${DateTime.now().add(const Duration(days: 15)).year}',
+  },
+];
+
+// Notifier: call this after inserting/updating a lead to refresh the list
+VoidCallback? onLeadsChanged;
 
 // TODO: Replace with [Riverpod/Bloc] for production
 class LeadsListScreen extends StatefulWidget {
@@ -42,38 +234,74 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
   List<LeadModel> _leads = [];
+  String? _assignedEmployeeFilter;
+  DateTime? _dateFrom;
+  DateTime? _dateTo;
 
   @override
   void initState() {
     super.initState();
+    // Register the reload callback so add_lead_screen can trigger it
+    onLeadsChanged = _reloadFromGlobal;
     _loadLeads();
   }
 
-  Future<void> _loadLeads() async {
-    await Future.delayed(const Duration(milliseconds: 400));
+  @override
+  void dispose() {
+    if (onLeadsChanged == _reloadFromGlobal) {
+      onLeadsChanged = null;
+    }
+    _searchController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Reload leads every time this screen becomes visible (e.g. after adding a lead)
+    _reloadFromGlobal();
+  }
+
+  void _reloadFromGlobal() {
     if (mounted) {
       setState(() {
         _leads = globalLeadMaps.map(LeadModel.fromMap).toList();
         _isLoading = false;
       });
     }
+  }
+
+  Future<void> _loadLeads() async {
+    await Future.delayed(const Duration(milliseconds: 400));
+    _reloadFromGlobal();
   }
 
   Future<void> _refresh() async {
     setState(() => _isLoading = true);
     await Future.delayed(const Duration(milliseconds: 400));
-    if (mounted) {
-      setState(() {
-        _leads = globalLeadMaps.map(LeadModel.fromMap).toList();
-        _isLoading = false;
-      });
-    }
+    _reloadFromGlobal();
   }
 
   void removeLead(String id) {
     setState(() {
       _leads.removeWhere((l) => l.id == id);
       globalLeadMaps.removeWhere((m) => m['id'] == id);
+    });
+  }
+
+  bool get _hasActiveFilters =>
+      _existingCustomerFilter != null ||
+      _assignedEmployeeFilter != null ||
+      _dateFrom != null ||
+      _dateTo != null;
+
+  void _clearAllFilters() {
+    setState(() {
+      _existingCustomerFilter = null;
+      _assignedEmployeeFilter = null;
+      _dateFrom = null;
+      _dateTo = null;
     });
   }
 
@@ -93,7 +321,31 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
           _existingCustomerFilter == null ||
           (_existingCustomerFilter == true && isExistingCustomer) ||
           (_existingCustomerFilter == false && !isExistingCustomer);
-      return matchesFilter && matchesSearch && matchesExistingFilter;
+      // Employee filter
+      final matchesEmployee =
+          _assignedEmployeeFilter == null ||
+          lead.ownerName == _assignedEmployeeFilter;
+      // Date filter — based on createdAt in map
+      bool matchesDate = true;
+      final map = globalLeadMaps.firstWhere(
+        (m) => m['id'] == lead.id,
+        orElse: () => {},
+      );
+      final createdAt = map['createdAt'] as DateTime?;
+      if (createdAt != null) {
+        if (_dateFrom != null && createdAt.isBefore(_dateFrom!)) {
+          matchesDate = false;
+        }
+        if (_dateTo != null &&
+            createdAt.isAfter(_dateTo!.add(const Duration(days: 1)))) {
+          matchesDate = false;
+        }
+      }
+      return matchesFilter &&
+          matchesSearch &&
+          matchesExistingFilter &&
+          matchesEmployee &&
+          matchesDate;
     }).toList();
 
     // Apply sort
@@ -253,7 +505,9 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
                   children: [
                     _FilterChip(
                       label: 'All',
@@ -263,7 +517,6 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
                         setSheet(() {});
                       },
                     ),
-                    const SizedBox(width: 8),
                     _FilterChip(
                       label: 'Yes (Won/Result)',
                       isSelected: _existingCustomerFilter == true,
@@ -272,7 +525,6 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
                         setSheet(() {});
                       },
                     ),
-                    const SizedBox(width: 8),
                     _FilterChip(
                       label: 'No',
                       isSelected: _existingCustomerFilter == false,
@@ -283,25 +535,241 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: () => Navigator.pop(ctx),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppTheme.primary,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: Text(
-                      'Apply',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                const Divider(height: 24),
+                // Assigned Employee filter with search
+                Text(
+                  'Assigned To',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textSecondary,
                   ),
+                ),
+                const SizedBox(height: 8),
+                StatefulBuilder(
+                  builder: (_, setEmp) {
+                    String empSearch = '';
+                    final employees = [
+                      'Priya Sharma',
+                      'Rahul Singh',
+                      'Ananya Patel',
+                      'Kavya Menon',
+                      'Arjun Das',
+                      'Amit Kumar',
+                      'Ravi Verma',
+                    ];
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        TextField(
+                          decoration: InputDecoration(
+                            hintText: 'Search employee...',
+                            prefixIcon: const Icon(
+                              Icons.search_rounded,
+                              size: 18,
+                            ),
+                            filled: true,
+                            fillColor: AppTheme.surfaceVariantLight,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide.none,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            isDense: true,
+                          ),
+                          onChanged: (v) => setEmp(() => empSearch = v),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          children: [
+                            _FilterChip(
+                              label: 'All',
+                              isSelected: _assignedEmployeeFilter == null,
+                              onTap: () {
+                                setState(() => _assignedEmployeeFilter = null);
+                                setSheet(() {});
+                              },
+                            ),
+                            ...employees
+                                .where(
+                                  (e) =>
+                                      empSearch.isEmpty ||
+                                      e.toLowerCase().contains(
+                                        empSearch.toLowerCase(),
+                                      ),
+                                )
+                                .map(
+                                  (e) => _FilterChip(
+                                    label: e,
+                                    isSelected: _assignedEmployeeFilter == e,
+                                    onTap: () {
+                                      setState(
+                                        () => _assignedEmployeeFilter = e,
+                                      );
+                                      setSheet(() {});
+                                    },
+                                  ),
+                                ),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                const Divider(height: 24),
+                // Date range filter
+                Text(
+                  'Date Range',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          final d = await showDatePicker(
+                            context: ctx,
+                            initialDate:
+                                _dateFrom ??
+                                DateTime.now().subtract(
+                                  const Duration(days: 30),
+                                ),
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime.now(),
+                          );
+                          if (d != null) {
+                            setState(() => _dateFrom = d);
+                            setSheet(() {});
+                          }
+                        },
+                        icon: const Icon(
+                          Icons.calendar_today_rounded,
+                          size: 14,
+                        ),
+                        label: Text(
+                          _dateFrom != null
+                              ? '${_dateFrom!.day}/${_dateFrom!.month}/${_dateFrom!.year}'
+                              : 'From',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 12),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 10,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          final d = await showDatePicker(
+                            context: ctx,
+                            initialDate: _dateTo ?? DateTime.now(),
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime.now().add(
+                              const Duration(days: 365),
+                            ),
+                          );
+                          if (d != null) {
+                            setState(() => _dateTo = d);
+                            setSheet(() {});
+                          }
+                        },
+                        icon: const Icon(
+                          Icons.calendar_today_rounded,
+                          size: 14,
+                        ),
+                        label: Text(
+                          _dateTo != null
+                              ? '${_dateTo!.day}/${_dateTo!.month}/${_dateTo!.year}'
+                              : 'To',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 12),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 10,
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (_dateFrom != null || _dateTo != null) ...[
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.clear_rounded,
+                          size: 18,
+                          color: AppTheme.error,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _dateFrom = null;
+                            _dateTo = null;
+                          });
+                          setSheet(() {});
+                        },
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    if (_hasActiveFilters)
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            _clearAllFilters();
+                            Navigator.pop(ctx);
+                          },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppTheme.error,
+                            side: BorderSide(color: AppTheme.error),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(
+                            'Clear All',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    if (_hasActiveFilters) const SizedBox(width: 8),
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppTheme.primary,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Apply',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -309,13 +777,6 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    _scrollController.dispose();
-    super.dispose();
   }
 
   @override
@@ -339,6 +800,25 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
               elevation: 0,
               scrolledUnderElevation: 1,
               shadowColor: AppTheme.surface200,
+              leading: Builder(
+                builder: (ctx) => IconButton(
+                  icon: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceVariantLight,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.menu_rounded,
+                      size: 20,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  onPressed: () => Scaffold.of(ctx).openDrawer(),
+                  tooltip: 'Menu',
+                ),
+              ),
               title: _isSearchActive
                   ? TextField(
                       controller: _searchController,
@@ -445,63 +925,124 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
               ),
             ),
 
-            // Results count + sort
+            // Results count + sort + active filter chips
             SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                child: Row(
-                  children: [
-                    Text(
-                      _isLoading
-                          ? 'Loading...'
-                          : '${_filteredLeads.length} lead${_filteredLeads.length != 1 ? 's' : ''}',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: AppTheme.textSecondary,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Active filter chips preview area
+                  if (_hasActiveFilters)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        children: [
+                          if (_assignedEmployeeFilter != null)
+                            _ActiveFilterChip(
+                              label: 'Assigned: $_assignedEmployeeFilter',
+                              onRemove: () => setState(
+                                () => _assignedEmployeeFilter = null,
+                              ),
+                            ),
+                          if (_dateFrom != null)
+                            _ActiveFilterChip(
+                              label:
+                                  'From: ${_dateFrom!.day}/${_dateFrom!.month}/${_dateFrom!.year}',
+                              onRemove: () => setState(() => _dateFrom = null),
+                            ),
+                          if (_dateTo != null)
+                            _ActiveFilterChip(
+                              label:
+                                  'To: ${_dateTo!.day}/${_dateTo!.month}/${_dateTo!.year}',
+                              onRemove: () => setState(() => _dateTo = null),
+                            ),
+                          if (_existingCustomerFilter != null)
+                            _ActiveFilterChip(
+                              label:
+                                  'Existing: ${_existingCustomerFilter! ? 'Yes' : 'No'}',
+                              onRemove: () => setState(
+                                () => _existingCustomerFilter = null,
+                              ),
+                            ),
+                          GestureDetector(
+                            onTap: _clearAllFilters,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.error.withAlpha(20),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: AppTheme.error.withAlpha(60),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.clear_all_rounded,
+                                    size: 14,
+                                    color: AppTheme.error,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Clear All',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11,
+                                      color: AppTheme.error,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    if (_existingCustomerFilter != null) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryContainer,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          'Existing: ${_existingCustomerFilter! ? 'Yes' : 'No'}',
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                    child: Row(
+                      children: [
+                        Text(
+                          _isLoading
+                              ? 'Loading...'
+                              : '${_filteredLeads.length} lead${_filteredLeads.length != 1 ? 's' : ''}',
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11,
-                            color: AppTheme.primary,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: AppTheme.textSecondary,
                           ),
                         ),
-                      ),
-                    ],
-                    const Spacer(),
-                    TextButton.icon(
-                      onPressed: _showSortSheet,
-                      icon: const Icon(Icons.sort_rounded, size: 16),
-                      label: Text(_sortLabel),
-                      style: TextButton.styleFrom(
-                        foregroundColor:
-                            _sortOption == _SortOption.dateNewest &&
-                                _existingCustomerFilter == null
-                            ? AppTheme.textSecondary
-                            : AppTheme.primary,
-                        textStyle: GoogleFonts.plusJakartaSans(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
+                        const Spacer(),
+                        TextButton.icon(
+                          onPressed: _showSortSheet,
+                          icon: Icon(
+                            Icons.sort_rounded,
+                            size: 16,
+                            color: _hasActiveFilters
+                                ? AppTheme.primary
+                                : AppTheme.textSecondary,
+                          ),
+                          label: Text(_sortLabel),
+                          style: TextButton.styleFrom(
+                            foregroundColor: _hasActiveFilters
+                                ? AppTheme.primary
+                                : AppTheme.textSecondary,
+                            textStyle: GoogleFonts.plusJakartaSans(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                          ),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
 
@@ -521,8 +1062,6 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
                   subtitle: _searchQuery.isNotEmpty
                       ? 'Try a different search term or clear filters'
                       : 'Start building your pipeline by adding your first lead',
-                  ctaLabel: 'Add New Lead',
-                  onCta: () => context.go(AppRoutes.addLeadScreen),
                 ),
               )
             else
@@ -565,13 +1104,6 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.go(AppRoutes.addLeadScreen),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Add Lead'),
-        backgroundColor: AppTheme.primary,
-        foregroundColor: Colors.white,
-      ),
     );
   }
 
@@ -607,6 +1139,45 @@ class _LeadsListScreenState extends State<LeadsListScreen> {
           height: 86,
           borderRadius: 16,
         ),
+      ),
+    );
+  }
+}
+
+class _ActiveFilterChip extends StatelessWidget {
+  final String label;
+  final VoidCallback onRemove;
+  const _ActiveFilterChip({required this.label, required this.onRemove});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryContainer,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.primary,
+            ),
+          ),
+          const SizedBox(width: 4),
+          GestureDetector(
+            onTap: onRemove,
+            child: const Icon(
+              Icons.close_rounded,
+              size: 12,
+              color: AppTheme.primary,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -698,6 +1269,8 @@ class LeadModel {
   final String? source;
   final String? campaign;
   final String? notes;
+  final List<String>? interests;
+  final DateTime? createdAt;
 
   const LeadModel({
     required this.id,
@@ -724,6 +1297,8 @@ class LeadModel {
     this.source,
     this.campaign,
     this.notes,
+    this.interests,
+    this.createdAt,
   });
 
   factory LeadModel.fromMap(Map<String, dynamic> map) => LeadModel(
@@ -751,6 +1326,10 @@ class LeadModel {
     source: map['source'] as String?,
     campaign: map['campaign'] as String?,
     notes: map['notes'] as String?,
+    interests: map['interests'] != null
+        ? List<String>.from(map['interests'] as List)
+        : null,
+    createdAt: map['createdAt'] as DateTime?,
   );
 
   Map<String, dynamic> toMap() => {
@@ -778,6 +1357,8 @@ class LeadModel {
     if (source != null) 'source': source,
     if (campaign != null) 'campaign': campaign,
     if (notes != null) 'notes': notes,
+    if (interests != null) 'interests': interests,
+    if (createdAt != null) 'createdAt': createdAt,
   };
 
   LeadModel copyWith({

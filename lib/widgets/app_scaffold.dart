@@ -56,9 +56,15 @@ class _AppDrawer extends StatelessWidget {
                   ),
                   _buildDrawerItem(
                     context,
+                    Icons.call_rounded,
+                    'Call Logs',
+                    () => context.go(AppRoutes.logsScreen),
+                  ),
+                  _buildDrawerItem(
+                    context,
                     Icons.star_rounded,
                     'Interests',
-                    () => context.go(AppRoutes.interestsScreen),
+                    () => context.push(AppRoutes.interestsScreen),
                   ),
                   _buildDrawerItem(
                     context,
@@ -80,12 +86,6 @@ class _AppDrawer extends StatelessWidget {
                     Icons.group_rounded,
                     'Employees',
                     () => _comingSoon(context, 'Employees'),
-                  ),
-                  _buildDrawerItem(
-                    context,
-                    Icons.call_rounded,
-                    'Call Logs',
-                    () => context.go(AppRoutes.analyticsScreen),
                   ),
                   _buildDrawerItemWithBadge(
                     context,

@@ -36,6 +36,25 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
       appBar: AppBar(
         backgroundColor: AppTheme.surfaceLight,
         elevation: 0,
+        leading: Builder(
+          builder: (ctx) => IconButton(
+            icon: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceVariantLight,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.menu_rounded,
+                size: 20,
+                color: AppTheme.textPrimary,
+              ),
+            ),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
+            tooltip: 'Menu',
+          ),
+        ),
         title: Text(
           'Analytics',
           style: GoogleFonts.plusJakartaSans(

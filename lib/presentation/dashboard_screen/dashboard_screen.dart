@@ -162,7 +162,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildSliverAppBar(String greeting) {
     return SliverAppBar(
-      expandedHeight: 130,
+      expandedHeight: 150,
       floating: true,
       snap: true,
       pinned: false,

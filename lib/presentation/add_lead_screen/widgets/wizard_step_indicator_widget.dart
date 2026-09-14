@@ -23,26 +23,25 @@ class WizardStepIndicatorWidget extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Column(
         children: [
-          // Step dots row
+          // Step dots row — centered
           SizedBox(
             height: 40,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: steps.length,
-              itemBuilder: (context, index) {
-                final isActive = index == currentStep;
-                final isCompleted = completedSteps[index];
-                final isPast = index < currentStep;
-                // Steps ahead of current that are not completed are locked
-                final isLocked = index > currentStep && !isCompleted;
+            child: Center(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: List.generate(steps.length, (index) {
+                    final isActive = index == currentStep;
+                    final isCompleted = completedSteps[index];
+                    final isPast = index < currentStep;
+                    final isLocked = index > currentStep && !isCompleted;
 
-                return GestureDetector(
-                  onTap: isLocked ? null : () => onStepTap(index),
-                  child: Row(
-                    children: [
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                    return GestureDetector(
+                      onTap: isLocked ? null : () => onStepTap(index),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           AnimatedContainer(
                             duration: const Duration(milliseconds: 300),
@@ -55,8 +54,6 @@ class WizardStepIndicatorWidget extends StatelessWidget {
                                   ? AppTheme.primary
                                   : isPast
                                   ? AppTheme.primaryMuted
-                                  : isLocked
-                                  ? AppTheme.surface200
                                   : AppTheme.surface200,
                               shape: BoxShape.circle,
                               boxShadow: isActive
@@ -94,25 +91,25 @@ class WizardStepIndicatorWidget extends StatelessWidget {
                                     ),
                             ),
                           ),
+                          if (index < steps.length - 1)
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              width: 20,
+                              height: 2,
+                              margin: const EdgeInsets.symmetric(horizontal: 2),
+                              decoration: BoxDecoration(
+                                color: isPast || isCompleted
+                                    ? AppTheme.primary
+                                    : AppTheme.surface200,
+                                borderRadius: BorderRadius.circular(1),
+                              ),
+                            ),
                         ],
                       ),
-                      if (index < steps.length - 1)
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          width: 20,
-                          height: 2,
-                          margin: const EdgeInsets.symmetric(horizontal: 2),
-                          decoration: BoxDecoration(
-                            color: isPast || isCompleted
-                                ? AppTheme.primary
-                                : AppTheme.surface200,
-                            borderRadius: BorderRadius.circular(1),
-                          ),
-                        ),
-                    ],
-                  ),
-                );
-              },
+                    );
+                  }),
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 4),

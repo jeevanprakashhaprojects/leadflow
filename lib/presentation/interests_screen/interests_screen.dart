@@ -9,7 +9,78 @@ import '../../widgets/loading_skeleton_widget.dart';
 import '../leads_list_screen/leads_list_screen.dart';
 
 // Shared global interests list — starts empty
-final List<Map<String, dynamic>> globalInterests = [];
+final List<Map<String, dynamic>> globalInterests = [
+  {
+    'id': 'int-default-1',
+    'customerName': 'Rahul Mehta',
+    'phone': '+91 98765 43210',
+    'email': 'rahul.mehta@techcorp.in',
+    'category': 'New Inquiry',
+    'status': 'New',
+    'priority': 'High',
+    'estimatedValue': 320000.0,
+    'assignedEmployee': 'Priya Sharma',
+    'assignedInitials': 'PS',
+    'notes': 'Interested in enterprise plan',
+    'createdAt': '2 days ago',
+  },
+  {
+    'id': 'int-default-2',
+    'customerName': 'Sneha Kapoor',
+    'phone': '+91 87654 32109',
+    'email': 'sneha.k@financeplus.com',
+    'category': 'Renewal Interest',
+    'status': 'In Progress',
+    'priority': 'Medium',
+    'estimatedValue': 150000.0,
+    'assignedEmployee': 'Amit Kumar',
+    'assignedInitials': 'AK',
+    'notes': 'Policy renewal due next month',
+    'createdAt': '1 week ago',
+  },
+  {
+    'id': 'int-default-3',
+    'customerName': 'Vikram Singh',
+    'phone': '+91 76543 21098',
+    'email': 'vikram@healthbridge.org',
+    'category': 'Upgrade Interest',
+    'status': 'Quoted',
+    'priority': 'High',
+    'estimatedValue': 480000.0,
+    'assignedEmployee': 'Priya Sharma',
+    'assignedInitials': 'PS',
+    'notes': 'Looking to upgrade existing plan',
+    'createdAt': '3 days ago',
+  },
+  {
+    'id': 'int-default-4',
+    'customerName': 'Anita Desai',
+    'phone': '+91 65432 10987',
+    'email': 'anita.desai@retailhub.in',
+    'category': 'Add-on Interest',
+    'status': 'Won',
+    'priority': 'Low',
+    'estimatedValue': 75000.0,
+    'assignedEmployee': 'Ravi Verma',
+    'assignedInitials': 'RV',
+    'notes': 'Add-on coverage for family',
+    'createdAt': 'Yesterday',
+  },
+  {
+    'id': 'int-default-5',
+    'customerName': 'Karan Joshi',
+    'phone': '+91 54321 09876',
+    'email': 'karan.j@edutech.co',
+    'category': 'Cross-sell Interest',
+    'status': 'New',
+    'priority': 'Medium',
+    'estimatedValue': 120000.0,
+    'assignedEmployee': 'Amit Kumar',
+    'assignedInitials': 'AK',
+    'notes': 'Interested in additional products',
+    'createdAt': '5 days ago',
+  },
+];
 
 enum _InterestSortOption {
   dateNewest,
@@ -397,6 +468,25 @@ class _InterestsScreenState extends State<InterestsScreen> {
               elevation: 0,
               scrolledUnderElevation: 1,
               shadowColor: AppTheme.surface200,
+              leading: Builder(
+                builder: (ctx) => IconButton(
+                  icon: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceVariantLight,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.menu_rounded,
+                      size: 20,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  onPressed: () => Scaffold.of(ctx).openDrawer(),
+                  tooltip: 'Menu',
+                ),
+              ),
               title: _isSearchActive
                   ? TextField(
                       controller: _searchController,
@@ -534,8 +624,6 @@ class _InterestsScreenState extends State<InterestsScreen> {
                   subtitle: _searchQuery.isNotEmpty
                       ? 'Try a different search term or clear filters'
                       : 'Start tracking customer interests by adding your first one',
-                  ctaLabel: 'Add Interest',
-                  onCta: _showAddInterestDialog,
                 ),
               )
             else
@@ -626,7 +714,7 @@ class _InterestKpiWidget extends StatelessWidget {
 
     final kpis = [
       _KpiData(
-        label: 'Total',
+        label: 'Total Interests',
         value: '$total',
         icon: Icons.star_rounded,
         color: AppTheme.primary,
@@ -634,18 +722,18 @@ class _InterestKpiWidget extends StatelessWidget {
         trendUp: true,
       ),
       _KpiData(
-        label: 'New',
+        label: 'New Interests',
         value: '$newCount',
         icon: Icons.fiber_new_rounded,
-        color: AppTheme.statusNew,
-        trend: '+${newCount > 0 ? newCount : 0} new',
+        color: AppTheme.secondary,
+        trend: '+$newCount new',
         trendUp: true,
       ),
       _KpiData(
         label: 'In Progress',
         value: '$inProgress',
         icon: Icons.timeline_rounded,
-        color: AppTheme.statusContacted,
+        color: const Color(0xFF8B5CF6),
         trend: 'Active',
         trendUp: true,
       ),
@@ -653,7 +741,7 @@ class _InterestKpiWidget extends StatelessWidget {
         label: 'Quoted',
         value: '$quoted',
         icon: Icons.request_quote_rounded,
-        color: AppTheme.statusProposal,
+        color: AppTheme.warning,
         trend: 'Pending',
         trendUp: false,
       ),
@@ -661,7 +749,7 @@ class _InterestKpiWidget extends StatelessWidget {
         label: 'Won',
         value: '$won',
         icon: Icons.emoji_events_rounded,
-        color: AppTheme.statusWon,
+        color: AppTheme.success,
         trend: 'Converted',
         trendUp: true,
       ),
@@ -704,15 +792,14 @@ class _KpiCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 130,
-      padding: const EdgeInsets.all(14),
+      width: 140,
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppTheme.surfaceLight,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.surface200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(8),
+            color: Colors.black.withAlpha(13),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -720,61 +807,64 @@ class _KpiCard extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                width: 32,
-                height: 32,
+                width: 28,
+                height: 28,
                 decoration: BoxDecoration(
-                  color: data.color.withAlpha(26),
+                  color: data.color.withAlpha(31),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(data.icon, size: 16, color: data.color),
+                child: Icon(data.icon, size: 14, color: data.color),
               ),
-              Text(
-                data.value,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: AppTheme.textPrimary,
-                ),
+              Row(
+                children: [
+                  Icon(
+                    data.trendUp
+                        ? Icons.trending_up_rounded
+                        : Icons.trending_down_rounded,
+                    size: 11,
+                    color: data.trendUp ? AppTheme.success : AppTheme.warning,
+                  ),
+                  const SizedBox(width: 2),
+                  Text(
+                    data.trend,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w500,
+                      color: data.trendUp ? AppTheme.success : AppTheme.warning,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
           const SizedBox(height: 6),
           Text(
+            data.value,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textPrimary,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+          const SizedBox(height: 2),
+          Text(
             data.label,
             style: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+              fontSize: 10,
               color: AppTheme.textSecondary,
+              fontWeight: FontWeight.w400,
             ),
-          ),
-          Row(
-            children: [
-              Icon(
-                data.trendUp
-                    ? Icons.arrow_upward_rounded
-                    : Icons.schedule_rounded,
-                size: 11,
-                color: data.trendUp ? AppTheme.success : AppTheme.warning,
-              ),
-              const SizedBox(width: 2),
-              Expanded(
-                child: Text(
-                  data.trend,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10,
-                    color: data.trendUp ? AppTheme.success : AppTheme.warning,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
         ],
       ),

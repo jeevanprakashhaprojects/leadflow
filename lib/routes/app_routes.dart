@@ -13,6 +13,7 @@ import '../presentation/interest_detail_screen/interest_detail_screen.dart';
 import '../presentation/interests_screen/interests_screen.dart';
 import '../presentation/lead_detail_screen/lead_detail_screen.dart';
 import '../presentation/leads_list_screen/leads_list_screen.dart';
+import '../presentation/logs_screen/logs_screen.dart';
 import '../presentation/notifications_screen/notifications_screen.dart';
 import '../presentation/profile_screen/profile_screen.dart';
 import '../presentation/settings_screen/settings_screen.dart';
@@ -35,6 +36,9 @@ class AppRoutes {
   // Shell branches
   static const String dashboardScreen = '/dashboard-screen';
   static const String leadsListScreen = '/leads-list-screen';
+  static const String logsScreen = '/logs-screen';
+  static const String settingsShellScreen = '/settings-shell-screen';
+  // Legacy / standalone
   static const String interestsScreen = '/interests-screen';
   static const String analyticsScreen = '/analytics-screen';
   static const String customersScreen = '/customers-screen';
@@ -344,7 +348,43 @@ final GoRouter appRouter = GoRouter(
         transitionDuration: const Duration(milliseconds: 320),
       ),
     ),
-    // Main app shell — 4 tabs: Dashboard | Leads | Interests | Analytics
+    GoRoute(
+      path: AppRoutes.interestsScreen,
+      pageBuilder: (context, state) => CustomTransitionPage(
+        key: state.pageKey,
+        child: const InterestsScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final slide =
+              Tween<Offset>(
+                begin: const Offset(1.0, 0),
+                end: Offset.zero,
+              ).animate(
+                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+              );
+          return SlideTransition(position: slide, child: child);
+        },
+        transitionDuration: const Duration(milliseconds: 320),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.analyticsScreen,
+      pageBuilder: (context, state) => CustomTransitionPage(
+        key: state.pageKey,
+        child: const AnalyticsScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final slide =
+              Tween<Offset>(
+                begin: const Offset(1.0, 0),
+                end: Offset.zero,
+              ).animate(
+                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+              );
+          return SlideTransition(position: slide, child: child);
+        },
+        transitionDuration: const Duration(milliseconds: 320),
+      ),
+    ),
+    // Main app shell — 4 tabs: Dashboard | Leads | Logs | Settings
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) =>
           AppScaffold(navigationShell: navigationShell),
@@ -370,18 +410,18 @@ final GoRouter appRouter = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: AppRoutes.interestsScreen,
+              path: AppRoutes.logsScreen,
               pageBuilder: (context, state) =>
-                  const NoTransitionPage(child: InterestsScreen()),
+                  const NoTransitionPage(child: LogsScreen()),
             ),
           ],
         ),
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: AppRoutes.analyticsScreen,
+              path: AppRoutes.settingsShellScreen,
               pageBuilder: (context, state) =>
-                  const NoTransitionPage(child: AnalyticsScreen()),
+                  const NoTransitionPage(child: SettingsScreen()),
             ),
           ],
         ),
